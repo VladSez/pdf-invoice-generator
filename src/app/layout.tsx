@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Analytics } from "@vercel/analytics/next";
+import Loglib from "@loglib/tracker/react";
 
 import "./globals.css";
 
@@ -66,7 +66,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <NuqsAdapter>{children}</NuqsAdapter>
-        <Analytics />
+        <Loglib
+          config={{
+            id: "pdf-invoice-editor",
+          }}
+        />
       </body>
     </html>
   );

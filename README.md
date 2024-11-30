@@ -1,3 +1,7 @@
+## Tools we use
+
+- https://www.loglib.io/s/pdf-invoice-editor for analytics
+
 ## TODO
 
 - [ ] Test with big values/numbers on the invoice, e.g. 1 000 000 (check if pdf is displayed correctly)
