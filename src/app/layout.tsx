@@ -49,12 +49,6 @@ export const metadata: Metadata = {
       follow: true,
     },
   },
-  themeColor: "#ffffff",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "PDF Invoice Generator",
-  },
 };
 
 export default function RootLayout({
