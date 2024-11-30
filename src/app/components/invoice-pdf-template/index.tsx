@@ -4,6 +4,7 @@ import { type InvoiceData } from "@/app/schema";
 import {
   Document,
   Font,
+  Link,
   Page,
   StyleSheet,
   Text,
@@ -16,6 +17,8 @@ import { InvoicePaymentInfo } from "./invoice-payment-info";
 import { InvoiceVATSummaryTable } from "./invoice-vat-summary-table";
 import { InvoicePaymentTotals } from "./invoice-payment-totals";
 import { translations } from "./translations";
+
+const PROD_WEBSITE_URL = "https://pdf-invoice-generator-one.vercel.app";
 
 // Open sans seems to be working fine with EN and PL
 const fontFamily = "Open Sans";
@@ -236,10 +239,14 @@ export const InvoicePdfTemplate = ({
 
         {/* Footer  */}
         <View style={styles.footer}>
-          {/* Created with */}
           <Text style={[styles.fontSize7]}>
-            {/* TODO: change this later to our prod website */}
-            Created by OUR PROJECT NAME
+            Created with{" "}
+            <Link
+              style={[styles.fontSize7, { color: "black" }]}
+              src={PROD_WEBSITE_URL}
+            >
+              {PROD_WEBSITE_URL}
+            </Link>
           </Text>
           {/* Page number */}
           <Text
