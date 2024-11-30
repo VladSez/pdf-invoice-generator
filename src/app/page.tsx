@@ -19,6 +19,7 @@ import {
   compressToEncodedURIComponent,
   decompressFromEncodedURIComponent,
 } from "lz-string";
+import { loglib } from "@loglib/tracker";
 
 const InvoicePDFDownloadLink = dynamic(
   () =>
@@ -179,7 +180,15 @@ export default function Home() {
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-7xl">
         <div className="flex flex-row flex-wrap lg:flex-nowrap items-center justify-between w-full">
           <h1 className="text-2xl font-bold mb-4 w-full text-center lg:text-left">
-            Free Invoice PDF Generator • Open Source
+            Free Invoice PDF Generator •{" "}
+            <a
+              href="https://github.com/VladSez/pdf-invoice-generator"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 hover:underline"
+            >
+              Open Source <GithubIcon />
+            </a>
           </h1>
 
           <div className="w-full flex justify-center flex-wrap lg:flex-nowrap lg:justify-end gap-3 mb-1">
@@ -194,6 +203,8 @@ export default function Home() {
                     console.error("Failed to copy URL:", err);
                     alert("Failed to copy URL to clipboard");
                   });
+
+                loglib.track("copy_link_to_invoice");
               }}
               className="inline-flex w-full lg:w-auto justify-center items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md"
             >
@@ -211,16 +222,7 @@ export default function Home() {
                 onInvoiceDataChange={handleInvoiceDataChange}
               />
             </div>
-            <div className="flex justify-center mt-4">
-              <a
-                href="https://github.com/VladSez/pdf-invoice-generator"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
-              >
-                <GithubIcon />
-              </a>
-            </div>
+            <hr className="my-4 block w-full lg:hidden" />
           </div>
           <div className="lg:col-span-8 h-[600px] lg:h-[630px] w-full max-w-full">
             <InvoicePDFViewer>

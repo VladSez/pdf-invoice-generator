@@ -12,6 +12,7 @@ import {
 import { useDebouncedCallback } from "use-debounce";
 import { Plus, Trash2 } from "lucide-react";
 import { z } from "zod";
+import { loglib } from "@loglib/tracker";
 
 export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
 
@@ -158,6 +159,10 @@ export function InvoiceForm({
   const handleRemoveItem = useCallback(
     (index: number) => {
       remove(index);
+
+      // analytics track event
+      loglib.track("remove_invoice_item");
+
       // Manually trigger form submission after removal
       const currentFormData = watch();
       debouncedRegeneratePdfOnFormChange(currentFormData);
@@ -828,7 +833,8 @@ export function InvoiceForm({
                     htmlFor={`itemVatAmount${index}`}
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    VAT Amount
+                    VAT Amount (calculated automatically based on Net Amount and
+                    VAT)
                   </label>
                   <Controller
                     name={`items.${index}.vatAmount`}
@@ -890,6 +896,9 @@ export function InvoiceForm({
         <button
           type="button"
           onClick={() => {
+            // analytics track event
+            loglib.track("add_invoice_item");
+
             append({
               name: "",
               amount: 1,
@@ -914,8 +923,8 @@ export function InvoiceForm({
           htmlFor="total"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Total in {currency} (this is calculated automatically based on Amount
-          and Net Price)
+          Total in {currency} (calculated automatically based on Amount and Net
+          Price)
         </label>
         <div className="relative mt-1 rounded-md shadow-sm">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
