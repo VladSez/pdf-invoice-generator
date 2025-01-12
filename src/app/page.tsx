@@ -5,21 +5,23 @@ import {
   SUPPORTED_LANGUAGES,
   type InvoiceData,
 } from "@/app/schema";
-import { startTransition, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   InvoiceForm,
+  PDF_DATA_FORM_ID,
   PDF_DATA_LOCAL_STORAGE_KEY,
 } from "./components/invoice-form";
 import { SUPPORTED_CURRENCIES } from "@/app/schema";
 import dayjs from "dayjs";
-import { useQueryState } from "nuqs";
 import dynamic from "next/dynamic";
 import { InvoicePdfTemplate } from "./components/invoice-pdf-template";
 import {
   compressToEncodedURIComponent,
   decompressFromEncodedURIComponent,
 } from "lz-string";
-import { loglib } from "@loglib/tracker";
+import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const InvoicePDFDownloadLink = dynamic(
   () =>
@@ -29,11 +31,14 @@ const InvoicePDFDownloadLink = dynamic(
 
   {
     ssr: false,
-    loading: () => (
-      <div className="mb-4 lg:mb-0 w-full lg:w-[180px] text-center px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600">
-        Loading document...
-      </div>
-    ),
+    loading: () => {
+      // fake button styles
+      return (
+        <div className="mb-4 lg:mb-0 w-full lg:w-[180px] text-center px-4 py-2 bg-slate-900 text-slate-50 shadow-sm shadow-black/5 hover:bg-slate-900/90 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 rounded-lg text-sm font-medium">
+          Loading document...
+        </div>
+      );
+    },
   }
 );
 
@@ -104,74 +109,143 @@ const initialInvoiceData = {
 } as const satisfies InvoiceData;
 
 export default function Home() {
-  const [invoiceDataParam, setInvoiceDataParam] = useQueryState("data", {
-    parse: (value: string) => {
-      try {
-        // Decompress the URL parameter before parsing
-        const decompressed = decompressFromEncodedURIComponent(value);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
+  const [invoiceDataState, setInvoiceDataState] = useState<InvoiceData | null>(
+    null
+  );
+
+  // Initialize data from URL or localStorage on mount
+  useEffect(() => {
+    const urlData = searchParams.get("data");
+
+    if (urlData) {
+      try {
+        const decompressed = decompressFromEncodedURIComponent(urlData);
         const parsed = JSON.parse(decompressed);
         const validated = invoiceSchema.parse(parsed);
 
-        return validated;
-      } catch {
-        return null;
-      }
-    },
-    serialize: (value: InvoiceData | null) => {
-      if (!value) return "";
-
-      const stringified = JSON.stringify(value);
-
-      // Compress the data before adding to URL
-      const compressed = compressToEncodedURIComponent(stringified);
-
-      return compressed;
-    },
-    defaultValue: null,
-  });
-
-  // Initialize data from localStorage only if URL param is not present
-  useEffect(() => {
-    if (!invoiceDataParam) {
-      try {
-        const savedData = localStorage.getItem(PDF_DATA_LOCAL_STORAGE_KEY);
-        if (savedData) {
-          const parsedData = invoiceSchema.parse(JSON.parse(savedData));
-          setInvoiceDataParam(parsedData);
-        } else {
-          setInvoiceDataParam(initialInvoiceData);
-        }
+        setInvoiceDataState(validated);
       } catch (error) {
-        console.error("Failed to load saved invoice data:", error);
-        alert("Failed to load saved invoice data");
-        setInvoiceDataParam(initialInvoiceData);
+        // fallback to local storage
+        console.error("Failed to parse URL data:", error);
+        loadFromLocalStorage();
       }
+    } else {
+      // if no data in url, load from local storage
+      loadFromLocalStorage();
     }
-  }, [invoiceDataParam, setInvoiceDataParam]); // Only run on mount
+  }, [searchParams]);
 
-  // Sync URL data to localStorage whenever URL params change
-  useEffect(() => {
-    if (invoiceDataParam) {
-      try {
-        localStorage.setItem(
-          PDF_DATA_LOCAL_STORAGE_KEY,
-          JSON.stringify(invoiceDataParam)
-        );
-      } catch (error) {
-        console.error("Failed to save invoice data:", error);
-        alert("Failed to save invoice data");
+  // Helper function to load from localStorage
+  const loadFromLocalStorage = () => {
+    try {
+      const savedData = localStorage.getItem(PDF_DATA_LOCAL_STORAGE_KEY);
+      if (savedData) {
+        const json = JSON.parse(savedData);
+        const parsedData = invoiceSchema.parse(json);
+
+        // const today = dayjs();
+
+        // const isInvoiceFromPreviousMonth = dayjs(
+        //   parsedData?.dateOfIssue
+        // ).isBefore(today, "month");
+
+        // if (isInvoiceFromPreviousMonth) {
+        //   parsedData.dateOfIssue = today.format("YYYY-MM-DD");
+        //   parsedData.dateOfService = today.endOf("month").format("YYYY-MM-DD");
+        //   parsedData.paymentDue = today.add(14, "days").format("YYYY-MM-DD");
+        //   parsedData.invoiceNumber = `1/${today.format("MM-YYYY")}`;
+        // }
+
+        setInvoiceDataState(parsedData);
+        // setInvoiceDataState(restOfInvoiceData);
+      } else {
+        // if no data in local storage, set initial data
+        setInvoiceDataState(initialInvoiceData);
       }
-    }
-  }, [invoiceDataParam]);
+    } catch (error) {
+      console.error("Failed to load saved invoice data:", error);
 
-  const handleInvoiceDataChange = (updatedData: InvoiceData) => {
-    startTransition(() => {
-      setInvoiceDataParam(updatedData);
-    });
+      setInvoiceDataState(initialInvoiceData);
+    }
   };
 
-  if (!invoiceDataParam) {
+  // Save to localStorage whenever data changes on form update
+  useEffect(() => {
+    if (invoiceDataState) {
+      try {
+        const newInvoiceDataValidated = invoiceSchema.parse(invoiceDataState);
+
+        localStorage.setItem(
+          PDF_DATA_LOCAL_STORAGE_KEY,
+          JSON.stringify(newInvoiceDataValidated)
+        );
+
+        // Check if URL has data and current data is different
+        const urlData = searchParams.get("data");
+
+        if (urlData) {
+          try {
+            const decompressed = decompressFromEncodedURIComponent(urlData);
+            const urlParsed = JSON.parse(decompressed);
+
+            const urlValidated = invoiceSchema.parse(urlParsed);
+
+            if (
+              JSON.stringify(urlValidated) !==
+              JSON.stringify(newInvoiceDataValidated)
+            ) {
+              toast.info(
+                "Changes detected: This invoice differs from the shared link version. To share your updated invoice, please click 'Generate a link to invoice' to create a new shareable link.",
+                {
+                  duration: 8000,
+                  closeButton: true,
+                }
+              );
+
+              // Clean URL if data differs
+              router.replace("/");
+            }
+          } catch (error) {
+            console.error("Failed to compare with URL data:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save invoice data:", error);
+        toast.error("Failed to save invoice data");
+      }
+    }
+  }, [invoiceDataState, router, searchParams]);
+
+  const handleInvoiceDataChange = (updatedData: InvoiceData) => {
+    setInvoiceDataState(updatedData);
+  };
+
+  const handleShareInvoice = async () => {
+    if (invoiceDataState) {
+      try {
+        const newInvoiceDataValidated = invoiceSchema.parse(invoiceDataState);
+        const stringified = JSON.stringify(newInvoiceDataValidated);
+        const compressed = compressToEncodedURIComponent(stringified);
+
+        // Use push instead of replace to maintain history
+        router.push(`/?data=${compressed}`);
+
+        const newFullUrl = `${window.location.origin}/?data=${compressed}`;
+        await navigator.clipboard.writeText(newFullUrl);
+
+        toast.success("URL copied to clipboard!");
+      } catch (error) {
+        console.error("Failed to share invoice:", error);
+        toast.error("Failed to generate shareable link");
+      }
+    }
+  };
+
+  // we only want to render the page on client side
+  if (!invoiceDataState) {
     return null;
   }
 
@@ -192,25 +266,14 @@ export default function Home() {
           </h1>
 
           <div className="w-full flex justify-center flex-wrap lg:flex-nowrap lg:justify-end gap-3 mb-1">
-            <button
-              onClick={() => {
-                navigator.clipboard
-                  .writeText(window.location.href)
-                  .then(() => {
-                    alert("URL copied to clipboard!");
-                  })
-                  .catch((err) => {
-                    console.error("Failed to copy URL:", err);
-                    alert("Failed to copy URL to clipboard");
-                  });
-
-                loglib.track("copy_link_to_invoice");
-              }}
-              className="inline-flex w-full lg:w-auto justify-center items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md"
+            <Button
+              onClick={handleShareInvoice}
+              variant="outline"
+              className="w-full lg:w-auto"
             >
-              Copy link to invoice
-            </button>
-            <InvoicePDFDownloadLink invoiceData={invoiceDataParam} />
+              Generate a link to invoice
+            </Button>
+            <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
           </div>
         </div>
 
@@ -218,15 +281,23 @@ export default function Home() {
           <div className="lg:col-span-4">
             <div className="h-[400px] lg:h-[600px] overflow-auto p-3">
               <InvoiceForm
-                invoiceData={invoiceDataParam}
+                invoiceData={invoiceDataState}
                 onInvoiceDataChange={handleInvoiceDataChange}
               />
             </div>
+            <Button
+              type="submit"
+              form={PDF_DATA_FORM_ID}
+              variant="outline"
+              className="w-full mt-2"
+            >
+              Regenerate invoice
+            </Button>
             <hr className="my-4 block w-full lg:hidden" />
           </div>
           <div className="lg:col-span-8 h-[600px] lg:h-[630px] w-full max-w-full">
             <InvoicePDFViewer>
-              <InvoicePdfTemplate invoiceData={invoiceDataParam} />
+              <InvoicePdfTemplate invoiceData={invoiceDataState} />
             </InvoicePDFViewer>
           </div>
         </div>
