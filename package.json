@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prettify": "prettier --write --cache '**/*.{ts?(x),json,js,mjs,yml,yaml,md}'"
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.0",
@@ -39,6 +40,8 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.15",
     "postcss": "^8",
+    "prettier": "3.4.2",
+    "prettier-plugin-tailwindcss": "0.6.9",
     "tailwindcss": "3.4.14",
     "typescript": "5.6.3"
   }

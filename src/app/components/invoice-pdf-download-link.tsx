@@ -16,7 +16,7 @@ export function InvoicePDFDownloadLink({
     <PDFDownloadLink
       document={<InvoicePdfTemplate invoiceData={invoiceData} />}
       fileName={filename}
-      className="mb-4 lg:mb-0 w-full lg:w-[180px] text-center px-4 py-2 bg-slate-900 text-slate-50 shadow-sm shadow-black/5 hover:bg-slate-900/90 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 rounded-lg text-sm font-medium outline-offset-2 focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+      className="mb-4 w-full rounded-lg bg-slate-900 px-4 py-2 text-center text-sm font-medium text-slate-50 shadow-sm shadow-black/5 outline-offset-2 hover:bg-slate-900/90 focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 lg:mb-0 lg:w-[180px]"
       onClick={() => {
         loglib.track("download_invoice");
       }}

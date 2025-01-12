@@ -187,7 +187,7 @@ export function InvoiceForm({
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="space-y-3.5 mb-4"
+        className="mb-4 space-y-3.5"
         id={PDF_DATA_FORM_ID}
       >
         {/* Language Select - Add this after Currency Select */}
@@ -202,7 +202,7 @@ export function InvoiceForm({
               <SelectNative
                 {...field}
                 id="language"
-                className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang} value={lang}>
@@ -230,7 +230,7 @@ export function InvoiceForm({
                 {...field}
                 type="text"
                 id="invoiceNumber"
-                className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm px-3 py-2"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
               />
             )}
           />
@@ -248,12 +248,7 @@ export function InvoiceForm({
             name="dateOfIssue"
             control={control}
             render={({ field }) => (
-              <Input
-                {...field}
-                type="date"
-                id="dateOfIssue"
-                className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
-              />
+              <Input {...field} type="date" id="dateOfIssue" className="" />
             )}
           />
           {errors.dateOfIssue && (
@@ -270,12 +265,7 @@ export function InvoiceForm({
             name="dateOfService"
             control={control}
             render={({ field }) => (
-              <Input
-                {...field}
-                type="date"
-                id="dateOfService"
-                className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
-              />
+              <Input {...field} type="date" id="dateOfService" className="" />
             )}
           />
           {errors.dateOfService && (
@@ -318,7 +308,7 @@ export function InvoiceForm({
               <SelectNative
                 {...field}
                 id="currency"
-                className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
               >
                 {SUPPORTED_CURRENCIES.map((currency) => (
                   <option
@@ -338,8 +328,8 @@ export function InvoiceForm({
         </div>
 
         {/* Seller Information */}
-        <fieldset className="border p-4 rounded-lg shadow">
-          <legend className="text-lg font-medium text-gray-900 mb-2">
+        <fieldset className="rounded-lg border p-4 shadow">
+          <legend className="mb-2 text-lg font-medium text-gray-900">
             Seller Information
           </legend>
           <div className="space-y-4">
@@ -392,7 +382,7 @@ export function InvoiceForm({
                     {...field}
                     id="sellerVatNo"
                     type="text"
-                    className="block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                   />
                 )}
               />
@@ -413,7 +403,7 @@ export function InvoiceForm({
                     {...field}
                     id="sellerEmail"
                     type="email"
-                    className="block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                   />
                 )}
               />
@@ -469,8 +459,8 @@ export function InvoiceForm({
         </fieldset>
 
         {/* Buyer Information */}
-        <fieldset className="border p-4 rounded-lg shadow">
-          <legend className="text-lg font-medium text-gray-900 mb-2">
+        <fieldset className="rounded-lg border p-4 shadow">
+          <legend className="mb-2 text-lg font-medium text-gray-900">
             Buyer Information
           </legend>
           <div className="space-y-4">
@@ -539,7 +529,7 @@ export function InvoiceForm({
                     {...field}
                     id="buyerEmail"
                     type="email"
-                    className="block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                   />
                 )}
               />
@@ -551,8 +541,8 @@ export function InvoiceForm({
         </fieldset>
 
         {/* Invoice Items */}
-        <fieldset className="border p-4 rounded-lg shadow">
-          <legend className="text-lg font-medium text-gray-900 mb-2">
+        <fieldset className="rounded-lg border p-4 shadow">
+          <legend className="mb-2 text-lg font-medium text-gray-900">
             Invoice Items
           </legend>
 
@@ -560,7 +550,7 @@ export function InvoiceForm({
             return (
               <fieldset
                 key={field.id}
-                className="border p-4 rounded-lg shadow mb-4 relative"
+                className="relative mb-4 rounded-lg border p-4 shadow"
               >
                 {/* Delete invoice item button */}
                 {index > 0 ? (
@@ -568,17 +558,17 @@ export function InvoiceForm({
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(index)}
-                      className="flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 p-2 transition-colors"
+                      className="flex items-center justify-center rounded-full bg-red-600 p-2 transition-colors hover:bg-red-700"
                       title="Delete invoice item"
                     >
                       <Trash2 className="h-4 w-4 text-white" />
                     </button>
                   </div>
                 ) : null}
-                <legend className="text-lg font-medium text-gray-900 mb-2 relative">
+                <legend className="relative mb-2 text-lg font-medium text-gray-900">
                   Item {index + 1}
                 </legend>
-                <div className="space-y-4 mb-8 relative">
+                <div className="relative mb-8 space-y-4">
                   {/* Item Name */}
                   <div>
                     <Label htmlFor={`itemName${index}`} className="mb-1">
@@ -618,7 +608,7 @@ export function InvoiceForm({
                           type="number"
                           step="0.01"
                           min="0"
-                          className="block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -642,7 +632,7 @@ export function InvoiceForm({
                           {...field}
                           id={`itemUnit${index}`}
                           type="text"
-                          className="block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -668,7 +658,7 @@ export function InvoiceForm({
                           type="number"
                           step="0.01"
                           min="0"
-                          className="block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -692,7 +682,7 @@ export function InvoiceForm({
                           {...field}
                           id={`itemVat${index}`}
                           type="text"
-                          className="block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -719,7 +709,7 @@ export function InvoiceForm({
                           type="number"
                           step="0.01"
                           readOnly
-                          className="cursor-not-allowed block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2 bg-gray-100"
+                          className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -748,7 +738,7 @@ export function InvoiceForm({
                           max="100"
                           min="0"
                           readOnly
-                          className="cursor-not-allowed block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2 bg-gray-100"
+                          className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -778,7 +768,7 @@ export function InvoiceForm({
                           type="number"
                           step="0.01"
                           readOnly
-                          className="cursor-not-allowed block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2 bg-gray-100"
+                          className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -810,9 +800,9 @@ export function InvoiceForm({
                 preTaxAmount: 0,
               });
             }}
-            className="flex items-center text-sm font-medium text-gray-700 mb-1 hover:text-black"
+            className="mb-1 flex items-center text-sm font-medium text-gray-700 hover:text-black"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Item
           </button>
         </fieldset>
@@ -843,7 +833,7 @@ export function InvoiceForm({
                       maximumFractionDigits: 2,
                     })
                     .replaceAll(/,/g, " ")}
-                  className="cursor-not-allowed block w-full rounded-md border-gray-300 pl-12 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 sm:text-sm bg-gray-100"
+                  className="block w-full cursor-not-allowed rounded-md border-gray-300 bg-gray-100 pl-12 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 sm:text-sm"
                 />
               )}
             />
@@ -864,7 +854,7 @@ export function InvoiceForm({
                 {...field}
                 id="paymentMethod"
                 type="text"
-                className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
               />
             )}
           />
@@ -882,12 +872,7 @@ export function InvoiceForm({
             name="paymentDue"
             control={control}
             render={({ field }) => (
-              <Input
-                {...field}
-                id="paymentDue"
-                type="date"
-                className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50 px-3 py-2"
-              />
+              <Input {...field} id="paymentDue" type="date" className="" />
             )}
           />
           {errors.paymentDue && (
