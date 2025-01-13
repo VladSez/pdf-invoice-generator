@@ -169,6 +169,11 @@ export const styles = StyleSheet.create({
     fontSize: 8,
     color: "#000",
   },
+  center: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 } as const);
 
 // PDF Document component
