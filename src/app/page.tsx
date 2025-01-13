@@ -5,21 +5,24 @@ import {
   SUPPORTED_LANGUAGES,
   type InvoiceData,
 } from "@/app/schema";
-import { startTransition, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   InvoiceForm,
+  PDF_DATA_FORM_ID,
   PDF_DATA_LOCAL_STORAGE_KEY,
 } from "./components/invoice-form";
 import { SUPPORTED_CURRENCIES } from "@/app/schema";
 import dayjs from "dayjs";
-import { useQueryState } from "nuqs";
 import dynamic from "next/dynamic";
 import { InvoicePdfTemplate } from "./components/invoice-pdf-template";
 import {
   compressToEncodedURIComponent,
   decompressFromEncodedURIComponent,
 } from "lz-string";
-import { loglib } from "@loglib/tracker";
+import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useMediaQuery } from "@/lib/hooks/use-media-query";
 
 const InvoicePDFDownloadLink = dynamic(
   () =>
@@ -28,12 +31,15 @@ const InvoicePDFDownloadLink = dynamic(
     ),
 
   {
-    ssr: false,
-    loading: () => (
-      <div className="mb-4 lg:mb-0 w-full lg:w-[180px] text-center px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600">
-        Loading document...
-      </div>
-    ),
+    ssr: true,
+    loading: () => {
+      // fake button styles
+      return (
+        <div className="mb-4 w-full rounded-lg bg-slate-900 px-4 py-2 text-center text-sm font-medium text-slate-50 shadow-sm shadow-black/5 hover:bg-slate-900/90 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 lg:mb-0 lg:w-[180px]">
+          Loading document...
+        </div>
+      );
+    },
   }
 );
 
@@ -46,9 +52,9 @@ const InvoicePDFViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-full w-full flex items-center justify-center bg-gray-200 border border-gray-200">
+      <div className="flex h-full w-full items-center justify-center border border-gray-200 bg-gray-200">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           <p className="text-gray-600">Loading PDF viewer...</p>
         </div>
       </div>
@@ -104,129 +110,238 @@ const initialInvoiceData = {
 } as const satisfies InvoiceData;
 
 export default function Home() {
-  const [invoiceDataParam, setInvoiceDataParam] = useQueryState("data", {
-    parse: (value: string) => {
-      try {
-        // Decompress the URL parameter before parsing
-        const decompressed = decompressFromEncodedURIComponent(value);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
+  const [invoiceDataState, setInvoiceDataState] = useState<InvoiceData | null>(
+    null
+  );
+
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+
+  // Initialize data from URL or localStorage on mount
+  useEffect(() => {
+    const urlData = searchParams.get("data");
+
+    if (urlData) {
+      try {
+        const decompressed = decompressFromEncodedURIComponent(urlData);
         const parsed = JSON.parse(decompressed);
         const validated = invoiceSchema.parse(parsed);
 
-        return validated;
-      } catch {
-        return null;
-      }
-    },
-    serialize: (value: InvoiceData | null) => {
-      if (!value) return "";
-
-      const stringified = JSON.stringify(value);
-
-      // Compress the data before adding to URL
-      const compressed = compressToEncodedURIComponent(stringified);
-
-      return compressed;
-    },
-    defaultValue: null,
-  });
-
-  // Initialize data from localStorage only if URL param is not present
-  useEffect(() => {
-    if (!invoiceDataParam) {
-      try {
-        const savedData = localStorage.getItem(PDF_DATA_LOCAL_STORAGE_KEY);
-        if (savedData) {
-          const parsedData = invoiceSchema.parse(JSON.parse(savedData));
-          setInvoiceDataParam(parsedData);
-        } else {
-          setInvoiceDataParam(initialInvoiceData);
-        }
+        setInvoiceDataState(validated);
       } catch (error) {
-        console.error("Failed to load saved invoice data:", error);
-        alert("Failed to load saved invoice data");
-        setInvoiceDataParam(initialInvoiceData);
+        // fallback to local storage
+        console.error("Failed to parse URL data:", error);
+        loadFromLocalStorage();
       }
+    } else {
+      // if no data in url, load from local storage
+      loadFromLocalStorage();
     }
-  }, [invoiceDataParam, setInvoiceDataParam]); // Only run on mount
+  }, [searchParams]);
 
-  // Sync URL data to localStorage whenever URL params change
-  useEffect(() => {
-    if (invoiceDataParam) {
-      try {
-        localStorage.setItem(
-          PDF_DATA_LOCAL_STORAGE_KEY,
-          JSON.stringify(invoiceDataParam)
-        );
-      } catch (error) {
-        console.error("Failed to save invoice data:", error);
-        alert("Failed to save invoice data");
+  // Helper function to load from localStorage
+  const loadFromLocalStorage = () => {
+    try {
+      const savedData = localStorage.getItem(PDF_DATA_LOCAL_STORAGE_KEY);
+      if (savedData) {
+        const json = JSON.parse(savedData);
+        const parsedData = invoiceSchema.parse(json);
+
+        // const today = dayjs();
+
+        // const isInvoiceFromPreviousMonth = dayjs(
+        //   parsedData?.dateOfIssue
+        // ).isBefore(today, "month");
+
+        // if (isInvoiceFromPreviousMonth) {
+        //   parsedData.dateOfIssue = today.format("YYYY-MM-DD");
+        //   parsedData.dateOfService = today.endOf("month").format("YYYY-MM-DD");
+        //   parsedData.paymentDue = today.add(14, "days").format("YYYY-MM-DD");
+        //   parsedData.invoiceNumber = `1/${today.format("MM-YYYY")}`;
+        // }
+
+        setInvoiceDataState(parsedData);
+        // setInvoiceDataState(restOfInvoiceData);
+      } else {
+        // if no data in local storage, set initial data
+        setInvoiceDataState(initialInvoiceData);
       }
-    }
-  }, [invoiceDataParam]);
+    } catch (error) {
+      console.error("Failed to load saved invoice data:", error);
 
-  const handleInvoiceDataChange = (updatedData: InvoiceData) => {
-    startTransition(() => {
-      setInvoiceDataParam(updatedData);
-    });
+      setInvoiceDataState(initialInvoiceData);
+    }
   };
 
-  if (!invoiceDataParam) {
+  // Save to localStorage whenever data changes on form update
+  useEffect(() => {
+    if (invoiceDataState) {
+      try {
+        const newInvoiceDataValidated = invoiceSchema.parse(invoiceDataState);
+
+        localStorage.setItem(
+          PDF_DATA_LOCAL_STORAGE_KEY,
+          JSON.stringify(newInvoiceDataValidated)
+        );
+
+        // Check if URL has data and current data is different
+        const urlData = searchParams.get("data");
+
+        if (urlData) {
+          try {
+            const decompressed = decompressFromEncodedURIComponent(urlData);
+            const urlParsed = JSON.parse(decompressed);
+
+            const urlValidated = invoiceSchema.parse(urlParsed);
+
+            if (
+              JSON.stringify(urlValidated) !==
+              JSON.stringify(newInvoiceDataValidated)
+            ) {
+              toast.info(
+                <p>
+                  <span className="font-semibold">Changes detected:</span> This
+                  invoice differs from the shared link version. To share your
+                  updated invoice, please click &apos;Generate a link to
+                  invoice&apos; to create a new shareable link.
+                </p>,
+                {
+                  duration: 10000,
+                  closeButton: true,
+                  richColors: true,
+                }
+              );
+
+              // Clean URL if data differs
+              router.replace("/");
+            }
+          } catch (error) {
+            console.error("Failed to compare with URL data:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save invoice data:", error);
+        toast.error("Failed to save invoice data");
+      }
+    }
+  }, [invoiceDataState, router, searchParams]);
+
+  const handleInvoiceDataChange = (updatedData: InvoiceData) => {
+    setInvoiceDataState(updatedData);
+  };
+
+  const handleShareInvoice = async () => {
+    if (invoiceDataState) {
+      try {
+        const newInvoiceDataValidated = invoiceSchema.parse(invoiceDataState);
+        const stringified = JSON.stringify(newInvoiceDataValidated);
+        const compressed = compressToEncodedURIComponent(stringified);
+
+        // Use push instead of replace to maintain history
+        router.push(`/?data=${compressed}`);
+
+        const newFullUrl = `${window.location.origin}/?data=${compressed}`;
+        await navigator.clipboard.writeText(newFullUrl);
+
+        toast.success("URL copied to clipboard!");
+      } catch (error) {
+        console.error("Failed to share invoice:", error);
+        toast.error("Failed to generate shareable link");
+      }
+    }
+  };
+
+  // we only want to render the page on client side
+  if (!invoiceDataState) {
     return null;
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-7xl">
-        <div className="flex flex-row flex-wrap lg:flex-nowrap items-center justify-between w-full">
-          <h1 className="text-2xl font-bold mb-4 w-full text-center lg:text-left">
-            Free Invoice PDF Generator •{" "}
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 sm:p-4">
+      <div className="w-full max-w-7xl rounded-lg bg-white p-3 shadow-lg sm:p-6">
+        <div className="flex w-full flex-row flex-wrap items-center justify-between lg:flex-nowrap">
+          <h1 className="mb-6 mt-6 w-full text-balance text-center text-xl font-bold sm:mb-4 sm:mt-0 sm:text-2xl lg:text-left">
+            Free Invoice PDF Generator
+          </h1>
+
+          <div className="mb-1 flex w-full flex-wrap justify-center gap-3 lg:flex-nowrap lg:justify-end">
+            <Button
+              onClick={handleShareInvoice}
+              variant="outline"
+              className="w-full lg:w-auto"
+            >
+              Generate a link to invoice
+            </Button>
+            {isDesktop ? (
+              <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
+            ) : null}
+          </div>
+        </div>
+        <div className="mb-4 flex flex-row items-center justify-center lg:mb-0 lg:justify-start">
+          <span className="relative bottom-0 text-sm text-gray-900 lg:bottom-3">
+            Made by{" "}
+            <a
+              href="https://dub.sh/vldzn.me"
+              className="underline transition-colors hover:text-blue-600"
+              target="_blank"
+            >
+              Vlad Sazonau
+            </a>
+            {" | "}
             <a
               href="https://github.com/VladSez/pdf-invoice-generator"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 hover:underline"
+              className="group inline-flex items-center gap-2"
+              title="View on GitHub"
             >
-              Open Source <GithubIcon />
+              <span className="transition-all group-hover:text-blue-600 group-hover:underline">
+                Open Source
+              </span>
+              <GithubIcon />
             </a>
-          </h1>
-
-          <div className="w-full flex justify-center flex-wrap lg:flex-nowrap lg:justify-end gap-3 mb-1">
-            <button
-              onClick={() => {
-                navigator.clipboard
-                  .writeText(window.location.href)
-                  .then(() => {
-                    alert("URL copied to clipboard!");
-                  })
-                  .catch((err) => {
-                    console.error("Failed to copy URL:", err);
-                    alert("Failed to copy URL to clipboard");
-                  });
-
-                loglib.track("copy_link_to_invoice");
-              }}
-              className="inline-flex w-full lg:w-auto justify-center items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md"
+            {" | "}
+            <a
+              href="mailto:vladsazon27@gmail.com"
+              className="transition-colors hover:text-blue-600 hover:underline"
+              target="_blank"
             >
-              Copy link to invoice
-            </button>
-            <InvoicePDFDownloadLink invoiceData={invoiceDataParam} />
-          </div>
+              Contact me
+            </a>
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <div className="h-[400px] lg:h-[600px] overflow-auto p-3">
+            <div className="h-[400px] overflow-auto p-3 lg:h-[600px]">
               <InvoiceForm
-                invoiceData={invoiceDataParam}
+                invoiceData={invoiceDataState}
                 onInvoiceDataChange={handleInvoiceDataChange}
               />
             </div>
-            <hr className="my-4 block w-full lg:hidden" />
+
+            <div className="flex flex-col gap-3">
+              <Button
+                type="submit"
+                form={PDF_DATA_FORM_ID}
+                variant="outline"
+                className="mt-2 w-full"
+              >
+                Regenerate invoice
+              </Button>
+              {/* We show the pdf download link here only on mobile/tables */}
+              {isDesktop ? null : (
+                <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
+              )}
+            </div>
+
+            <hr className="my-2 block w-full lg:hidden" />
           </div>
-          <div className="lg:col-span-8 h-[600px] lg:h-[630px] w-full max-w-full">
+          <div className="h-[600px] w-full max-w-full lg:col-span-8 lg:h-[630px]">
             <InvoicePDFViewer>
-              <InvoicePdfTemplate invoiceData={invoiceDataParam} />
+              <InvoicePdfTemplate invoiceData={invoiceDataState} />
             </InvoicePDFViewer>
           </div>
         </div>
@@ -241,7 +356,7 @@ const GithubIcon = () => {
       role="img"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
+      className="h-5 w-5 transition-all group-hover:fill-blue-600"
     >
       <title>View on GitHub</title>
       <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />

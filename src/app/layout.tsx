@@ -3,6 +3,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import Loglib from "@loglib/tracker/react";
 
 import "./globals.css";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Free PDF Invoice Generator",
@@ -63,8 +64,10 @@ export default function RootLayout({
         <Loglib
           config={{
             id: "pdf-invoice-editor",
+            webVitals: true,
           }}
         />
+        <Toaster />
       </body>
     </html>
   );

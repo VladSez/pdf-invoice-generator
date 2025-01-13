@@ -169,6 +169,11 @@ export const styles = StyleSheet.create({
     fontSize: 8,
     color: "#000",
   },
+  center: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 } as const);
 
 // PDF Document component
@@ -187,8 +192,10 @@ export const InvoicePdfTemplate = ({
   const language = invoiceData.language;
   const t = translations[language];
 
+  const invoiceDocTitle = `${PROD_WEBSITE_URL} - ${t.invoiceNumber} ${invoiceData.invoiceNumber}`;
+
   return (
-    <Document>
+    <Document title={invoiceDocTitle}>
       <Page size="A4" style={styles.page}>
         <InvoiceHeader invoiceData={invoiceData} />
         <InvoiceSellerBuyerInfo invoiceData={invoiceData} />
@@ -239,10 +246,10 @@ export const InvoicePdfTemplate = ({
 
         {/* Footer  */}
         <View style={styles.footer}>
-          <Text style={[styles.fontSize7]}>
+          <Text style={[styles.fontSize9]}>
             Created with{" "}
             <Link
-              style={[styles.fontSize7, { color: "black" }]}
+              style={[styles.fontSize9, { color: "blue" }]}
               src={PROD_WEBSITE_URL}
             >
               {PROD_WEBSITE_URL}

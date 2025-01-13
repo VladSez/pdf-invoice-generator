@@ -18,46 +18,48 @@ export function InvoiceItemsTable({
       <View style={styles.table}>
         {/* Table header */}
         <View style={styles.tableRow}>
-          <View style={[styles.tableCol, styles.colNo]}>
+          <View style={[styles.tableCol, styles.colNo, styles.center]}>
             <Text style={styles.tableCellBold}>{t.invoiceItemsTable.no}</Text>
           </View>
-          <View style={[styles.tableCol, styles.colName]}>
+          <View style={[styles.tableCol, styles.colName, styles.center]}>
             <Text style={styles.tableCellBold}>
               {t.invoiceItemsTable.nameOfGoodsService}
             </Text>
           </View>
-          <View style={[styles.tableCol, styles.colGTU]}>
+          <View style={[styles.tableCol, styles.colGTU, styles.center]}>
             <Text style={styles.tableCellBold}>
               {t.invoiceItemsTable.typeOfGTU}
             </Text>
           </View>
-          <View style={[styles.tableCol, styles.colAmount]}>
+          <View style={[styles.tableCol, styles.colAmount, styles.center]}>
             <Text style={[styles.tableCellBold, {}]}>
               {t.invoiceItemsTable.amount}
             </Text>
           </View>
-          <View style={[styles.tableCol, styles.colUnit]}>
+          <View style={[styles.tableCol, styles.colUnit, styles.center]}>
             <Text style={styles.tableCellBold}>{t.invoiceItemsTable.unit}</Text>
           </View>
-          <View style={[styles.tableCol, styles.colNetPrice]}>
+          <View style={[styles.tableCol, styles.colNetPrice, styles.center]}>
             <Text style={styles.tableCellBold}>
               {t.invoiceItemsTable.netPrice}
             </Text>
           </View>
-          <View style={[styles.tableCol, styles.colVAT]}>
+          <View style={[styles.tableCol, styles.colVAT, styles.center]}>
             <Text style={styles.tableCellBold}>{t.invoiceItemsTable.vat}</Text>
           </View>
-          <View style={[styles.tableCol, styles.colNetAmount]}>
+          <View style={[styles.tableCol, styles.colNetAmount, styles.center]}>
             <Text style={styles.tableCellBold}>
               {t.invoiceItemsTable.netAmount}
             </Text>
           </View>
-          <View style={[styles.tableCol, styles.colVATAmount]}>
+          <View style={[styles.tableCol, styles.colVATAmount, styles.center]}>
             <Text style={styles.tableCellBold}>
               {t.invoiceItemsTable.vatAmount}
             </Text>
           </View>
-          <View style={[styles.tableCol, styles.colPreTaxAmount]}>
+          <View
+            style={[styles.tableCol, styles.colPreTaxAmount, styles.center]}
+          >
             <Text style={[styles.tableCellBold]}>
               {t.invoiceItemsTable.preTaxAmount}
             </Text>
