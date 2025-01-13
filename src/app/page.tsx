@@ -22,6 +22,7 @@ import {
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useMediaQuery } from "@/lib/hooks/use-media-query";
 
 const InvoicePDFDownloadLink = dynamic(
   () =>
@@ -30,7 +31,7 @@ const InvoicePDFDownloadLink = dynamic(
     ),
 
   {
-    ssr: false,
+    ssr: true,
     loading: () => {
       // fake button styles
       return (
@@ -115,6 +116,8 @@ export default function Home() {
   const [invoiceDataState, setInvoiceDataState] = useState<InvoiceData | null>(
     null
   );
+
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   // Initialize data from URL or localStorage on mount
   useEffect(() => {
@@ -271,11 +274,13 @@ export default function Home() {
             >
               Generate a link to invoice
             </Button>
-            <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
+            {isDesktop ? (
+              <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
+            ) : null}
           </div>
         </div>
-        <div className="mb-4 flex flex-row items-center justify-center sm:mb-0 sm:justify-start">
-          <span className="relative bottom-0 text-sm text-gray-900 sm:bottom-3">
+        <div className="mb-4 flex flex-row items-center justify-center lg:mb-0 lg:justify-start">
+          <span className="relative bottom-0 text-sm text-gray-900 lg:bottom-3">
             Made by{" "}
             <a
               href="https://github.com/VladSez"
@@ -318,10 +323,13 @@ export default function Home() {
               >
                 Regenerate invoice
               </Button>
-              <InvoicePDFDownloadLink invoiceData={invoiceDataState} isMobile />
+              {/* We show the pdf download link here only on mobile/tables */}
+              {isDesktop ? null : (
+                <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
+              )}
             </div>
 
-            <hr className="my-4 block w-full lg:hidden" />
+            <hr className="my-2 block w-full lg:hidden" />
           </div>
           <div className="h-[600px] w-full max-w-full lg:col-span-8 lg:h-[630px]">
             <InvoicePDFViewer>
