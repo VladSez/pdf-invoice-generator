@@ -283,7 +283,7 @@ export default function Home() {
           <span className="relative bottom-0 text-sm text-gray-900 lg:bottom-3">
             Made by{" "}
             <a
-              href="https://github.com/VladSez"
+              href="https://dub.sh/vldzn.me"
               className="underline transition-colors hover:text-blue-600"
               target="_blank"
             >
