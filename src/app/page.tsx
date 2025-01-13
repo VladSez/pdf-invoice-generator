@@ -198,10 +198,16 @@ export default function Home() {
               JSON.stringify(newInvoiceDataValidated)
             ) {
               toast.info(
-                "Changes detected: This invoice differs from the shared link version. To share your updated invoice, please click 'Generate a link to invoice' to create a new shareable link.",
+                <p>
+                  <span className="font-semibold">Changes detected:</span> This
+                  invoice differs from the shared link version. To share your
+                  updated invoice, please click &apos;Generate a link to
+                  invoice&apos; to create a new shareable link.
+                </p>,
                 {
-                  duration: 8000,
+                  duration: 10000,
                   closeButton: true,
+                  richColors: true,
                 }
               );
 
@@ -268,8 +274,8 @@ export default function Home() {
             <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
           </div>
         </div>
-        <div className="flex flex-row items-center justify-center sm:justify-start">
-          <span className="relative bottom-3 text-sm text-gray-900">
+        <div className="mb-4 flex flex-row items-center justify-center sm:mb-0 sm:justify-start">
+          <span className="relative bottom-0 text-sm text-gray-900 sm:bottom-3">
             Made by{" "}
             <a
               href="https://github.com/VladSez"
@@ -302,14 +308,19 @@ export default function Home() {
                 onInvoiceDataChange={handleInvoiceDataChange}
               />
             </div>
-            <Button
-              type="submit"
-              form={PDF_DATA_FORM_ID}
-              variant="outline"
-              className="mt-2 w-full"
-            >
-              Regenerate invoice
-            </Button>
+
+            <div className="flex flex-col gap-3">
+              <Button
+                type="submit"
+                form={PDF_DATA_FORM_ID}
+                variant="outline"
+                className="mt-2 w-full"
+              >
+                Regenerate invoice
+              </Button>
+              <InvoicePDFDownloadLink invoiceData={invoiceDataState} isMobile />
+            </div>
+
             <hr className="my-4 block w-full lg:hidden" />
           </div>
           <div className="h-[600px] w-full max-w-full lg:col-span-8 lg:h-[630px]">
