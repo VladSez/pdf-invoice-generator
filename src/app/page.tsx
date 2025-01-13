@@ -302,6 +302,14 @@ export default function Home() {
               </span>
               <GithubIcon />
             </a>
+            {" | "}
+            <a
+              href="mailto:vladsazon27@gmail.com"
+              className="transition-colors hover:text-blue-600 hover:underline"
+              target="_blank"
+            >
+              Contact me
+            </a>
           </span>
         </div>
 
