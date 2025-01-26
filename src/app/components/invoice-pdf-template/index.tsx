@@ -18,7 +18,7 @@ import { InvoiceVATSummaryTable } from "./invoice-vat-summary-table";
 import { InvoicePaymentTotals } from "./invoice-payment-totals";
 import { translations } from "./translations";
 
-const PROD_WEBSITE_URL = "https://pdf-invoice-generator-one.vercel.app";
+const PROD_WEBSITE_URL = "https://dub.sh/easy-invoice";
 
 // Open sans seems to be working fine with EN and PL
 const fontFamily = "Open Sans";
@@ -192,7 +192,7 @@ export const InvoicePdfTemplate = ({
   const language = invoiceData.language;
   const t = translations[language];
 
-  const invoiceDocTitle = `${PROD_WEBSITE_URL} - ${t.invoiceNumber} ${invoiceData.invoiceNumber}`;
+  const invoiceDocTitle = `https://easyinvoicepdf.com - ${t.invoiceNumber} ${invoiceData.invoiceNumber}`;
 
   return (
     <Document title={invoiceDocTitle}>
@@ -252,7 +252,7 @@ export const InvoicePdfTemplate = ({
               style={[styles.fontSize9, { color: "blue" }]}
               src={PROD_WEBSITE_URL}
             >
-              {PROD_WEBSITE_URL}
+              https://easyinvoicepdf.com
             </Link>
           </Text>
           {/* Page number */}

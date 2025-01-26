@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useId } from "react";
 import { useForm, Controller, useWatch, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -10,13 +10,16 @@ import {
   invoiceItemSchema,
 } from "@/app/schema";
 import { useDebouncedCallback } from "use-debounce";
-import { Plus, Trash2 } from "lucide-react";
+import { Info, Plus, Trash2 } from "lucide-react";
 import { z } from "zod";
 import { loglib } from "@loglib/tracker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
+import { InputHelperMessage } from "@/components/ui/input-helper-message";
+import { Button } from "@/components/ui/button";
+import { CustomTooltip } from "@/components/ui/tooltip";
 
 export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
@@ -51,6 +54,14 @@ const ErrorMessage = ({ children }: { children: React.ReactNode }) => {
   return <p className="mt-1 text-xs text-red-600">{children}</p>;
 };
 
+const Legend = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <legend className="mb-2 text-lg font-semibold text-gray-900">
+      {children}
+    </legend>
+  );
+};
+
 interface InvoiceFormProps {
   invoiceData: InvoiceData;
   onInvoiceDataChange: (updatedData: InvoiceData) => void;
@@ -79,6 +90,8 @@ export function InvoiceForm({
     control,
     name: "items",
   });
+
+  const sellerSelectId = useId();
 
   // calculate totals and other values when invoice items change
   useEffect(() => {
@@ -199,11 +212,7 @@ export function InvoiceForm({
             name="language"
             control={control}
             render={({ field }) => (
-              <SelectNative
-                {...field}
-                id="language"
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm"
-              >
+              <SelectNative {...field} id="language" className="block">
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang} value={lang}>
                     {lang === "en" ? "English" : "Polish"}
@@ -212,6 +221,9 @@ export function InvoiceForm({
               </SelectNative>
             )}
           />
+          <InputHelperMessage>
+            Select the language of the invoice
+          </InputHelperMessage>
           {errors.language && (
             <ErrorMessage>{errors.language.message}</ErrorMessage>
           )}
@@ -305,11 +317,7 @@ export function InvoiceForm({
             name="currency"
             control={control}
             render={({ field }) => (
-              <SelectNative
-                {...field}
-                id="currency"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
-              >
+              <SelectNative {...field} id="currency" className="block">
                 {SUPPORTED_CURRENCIES.map((currency) => (
                   <option
                     key={currency}
@@ -329,9 +337,34 @@ export function InvoiceForm({
 
         {/* Seller Information */}
         <fieldset className="rounded-lg border p-4 shadow">
-          <legend className="mb-2 text-lg font-medium text-gray-900">
-            Seller Information
-          </legend>
+          <Legend>Seller Information</Legend>
+
+          <div className="relative bottom-3 flex items-end justify-end gap-2">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Label htmlFor={sellerSelectId}>Select Seller</Label>
+                <CustomTooltip
+                  trigger={<Info className="h-3 w-3" />}
+                  content="You can save multiple sellers to use them later"
+                />
+              </div>
+              <SelectNative
+                id={sellerSelectId}
+                className="block h-8 text-[12px] lg:text-[12px]"
+              >
+                {/* TODO: fetch sellers from local storage */}
+                <option value="1">Seller 1</option>
+                <option value="2">Seller 2</option>
+                <option value="3">Seller 3</option>
+              </SelectNative>
+            </div>
+
+            {/* TODO: add new seller modal + form and save to local storage */}
+            <Button _variant="outline" _size="sm" className="">
+              New Seller
+              <Plus className="ml-1 h-3 w-3" />
+            </Button>
+          </div>
           <div className="space-y-4">
             <div>
               <Label htmlFor="sellerName" className="mb-1">
@@ -378,12 +411,7 @@ export function InvoiceForm({
                 name="seller.vatNo"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="sellerVatNo"
-                    type="text"
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
-                  />
+                  <Input {...field} id="sellerVatNo" type="text" className="" />
                 )}
               />
               {errors.seller?.vatNo && (
@@ -403,7 +431,7 @@ export function InvoiceForm({
                     {...field}
                     id="sellerEmail"
                     type="email"
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+                    className=""
                   />
                 )}
               />
@@ -460,9 +488,7 @@ export function InvoiceForm({
 
         {/* Buyer Information */}
         <fieldset className="rounded-lg border p-4 shadow">
-          <legend className="mb-2 text-lg font-medium text-gray-900">
-            Buyer Information
-          </legend>
+          <Legend>Buyer Information</Legend>
           <div className="space-y-4">
             <div>
               <Label htmlFor="buyerName" className="mb-1">
@@ -525,12 +551,7 @@ export function InvoiceForm({
                 name="buyer.email"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="buyerEmail"
-                    type="email"
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
-                  />
+                  <Input {...field} id="buyerEmail" type="email" className="" />
                 )}
               />
               {errors.buyer?.email && (
@@ -542,9 +563,7 @@ export function InvoiceForm({
 
         {/* Invoice Items */}
         <fieldset className="rounded-lg border p-4 shadow">
-          <legend className="mb-2 text-lg font-medium text-gray-900">
-            Invoice Items
-          </legend>
+          <Legend>Invoice Items</Legend>
 
           {fields.map((field, index) => {
             return (
@@ -565,14 +584,12 @@ export function InvoiceForm({
                     </button>
                   </div>
                 ) : null}
-                <legend className="relative mb-2 text-lg font-medium text-gray-900">
-                  Item {index + 1}
-                </legend>
+                <Legend>Item {index + 1}</Legend>
                 <div className="relative mb-8 space-y-4">
-                  {/* Item Name */}
+                  {/* invoice item name */}
                   <div>
                     <Label htmlFor={`itemName${index}`} className="mb-1">
-                      Item Name
+                      Name
                     </Label>
                     <Controller
                       name={`items.${index}.name`}
@@ -593,6 +610,29 @@ export function InvoiceForm({
                     )}
                   </div>
 
+                  <div>
+                    <Label htmlFor={`itemTypeOfGTU${index}`} className="mb-1">
+                      Type of GTU
+                    </Label>
+                    <Controller
+                      name={`items.${index}.typeOfGTU`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id={`itemTypeOfGTU${index}`}
+                          className=""
+                          type="text"
+                        />
+                      )}
+                    />
+                    {errors.items?.[index]?.typeOfGTU && (
+                      <ErrorMessage>
+                        {errors.items[index]?.typeOfGTU?.message}
+                      </ErrorMessage>
+                    )}
+                  </div>
+
                   {/* Item Amount */}
                   <div>
                     <Label htmlFor={`itemAmount${index}`} className="mb-1">
@@ -608,7 +648,7 @@ export function InvoiceForm({
                           type="number"
                           step="0.01"
                           min="0"
-                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+                          className=""
                         />
                       )}
                     />
@@ -632,7 +672,7 @@ export function InvoiceForm({
                           {...field}
                           id={`itemUnit${index}`}
                           type="text"
-                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+                          className=""
                         />
                       )}
                     />
@@ -658,7 +698,7 @@ export function InvoiceForm({
                           type="number"
                           step="0.01"
                           min="0"
-                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+                          className=""
                         />
                       )}
                     />
@@ -672,7 +712,7 @@ export function InvoiceForm({
                   {/* New VAT field */}
                   <div>
                     <Label htmlFor={`itemVat${index}`} className="mb-1">
-                      VAT (enter NP, OO or percentage value)
+                      VAT
                     </Label>
                     <Controller
                       name={`items.${index}.vat`}
@@ -682,10 +722,13 @@ export function InvoiceForm({
                           {...field}
                           id={`itemVat${index}`}
                           type="text"
-                          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+                          className=""
                         />
                       )}
                     />
+                    <InputHelperMessage>
+                      Enter NP, OO or percentage value
+                    </InputHelperMessage>
                     {errors.items?.[index]?.vat && (
                       <ErrorMessage>
                         {errors.items[index].vat.message}
@@ -696,8 +739,7 @@ export function InvoiceForm({
                   {/* New Net Amount field */}
                   <div>
                     <Label htmlFor={`itemNetAmount${index}`} className="mb-1">
-                      Net Amount (calculated automatically based on Amount and
-                      Net Price)
+                      Net Amount
                     </Label>
                     <Controller
                       name={`items.${index}.netAmount`}
@@ -713,6 +755,9 @@ export function InvoiceForm({
                         />
                       )}
                     />
+                    <InputHelperMessage>
+                      Calculated automatically based on Amount and Net Price
+                    </InputHelperMessage>
                     {errors.items?.[index]?.netAmount && (
                       <ErrorMessage>
                         {errors.items[index].netAmount.message}
@@ -723,8 +768,7 @@ export function InvoiceForm({
                   {/* This should probably be readonly field and calculated automatically based on VAT in % and Net Amount */}
                   <div>
                     <Label htmlFor={`itemVatAmount${index}`} className="mb-1">
-                      VAT Amount (calculated automatically based on Net Amount
-                      and VAT)
+                      VAT Amount
                     </Label>
                     <Controller
                       name={`items.${index}.vatAmount`}
@@ -742,6 +786,9 @@ export function InvoiceForm({
                         />
                       )}
                     />
+                    <InputHelperMessage>
+                      Calculated automatically based on Net Amount and VAT
+                    </InputHelperMessage>
                     {errors.items?.[index]?.vatAmount && (
                       <ErrorMessage>
                         {errors.items[index].vatAmount.message}
@@ -755,8 +802,7 @@ export function InvoiceForm({
                       htmlFor={`itemPreTaxAmount${index}`}
                       className="mb-1"
                     >
-                      Pre-tax Amount (calculated automatically based on Net
-                      Amount and VAT Amount)
+                      Pre-tax Amount
                     </Label>
                     <Controller
                       name={`items.${index}.preTaxAmount`}
@@ -772,6 +818,10 @@ export function InvoiceForm({
                         />
                       )}
                     />
+                    <InputHelperMessage>
+                      Calculated automatically based on Net Amount and VAT
+                      Amount
+                    </InputHelperMessage>
                     {errors.items?.[index]?.preTaxAmount && (
                       <ErrorMessage>
                         {errors.items[index].preTaxAmount.message}
@@ -803,7 +853,7 @@ export function InvoiceForm({
             className="mb-1 flex items-center text-sm font-medium text-gray-700 hover:text-black"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add Item
+            Add invoice item
           </button>
         </fieldset>
 
@@ -811,8 +861,7 @@ export function InvoiceForm({
         <div className="">
           <div className="mt-5" />
           <Label htmlFor="total" className="mb-1">
-            Total in {currency} (calculated automatically based on Amount and
-            Net Price)
+            Total in {currency}
           </Label>
           <div className="relative mt-1 rounded-md shadow-sm">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -838,6 +887,9 @@ export function InvoiceForm({
               )}
             />
           </div>
+          <InputHelperMessage>
+            Calculated automatically based on Net Amount + VAT Amount
+          </InputHelperMessage>
           {errors.total && <ErrorMessage>{errors.total.message}</ErrorMessage>}
         </div>
 
@@ -854,7 +906,7 @@ export function InvoiceForm({
                 {...field}
                 id="paymentMethod"
                 type="text"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+                className="mt-1"
               />
             )}
           />

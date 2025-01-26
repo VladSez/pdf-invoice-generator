@@ -8,6 +8,7 @@ export type SupportedLanguages = (typeof SUPPORTED_LANGUAGES)[number];
 export const invoiceItemSchema = z
   .object({
     name: z.string().min(1, "Item name is required").trim(),
+    typeOfGTU: z.string().trim().optional(),
     amount: z
       .any()
       .refine((val) => val !== "", {

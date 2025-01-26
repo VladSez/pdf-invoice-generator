@@ -23,6 +23,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/lib/hooks/use-media-query";
+import { CustomTooltip, TooltipProvider } from "@/components/ui/tooltip";
 
 const InvoicePDFDownloadLink = dynamic(
   () =>
@@ -52,7 +53,7 @@ const InvoicePDFViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full w-full items-center justify-center border border-gray-200 bg-gray-200">
+      <div className="flex h-[580px] w-full items-center justify-center border border-gray-200 bg-gray-200 lg:h-[620px]">
         <div className="text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           <p className="text-gray-600">Loading PDF viewer...</p>
@@ -259,94 +260,106 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 sm:p-4">
-      <div className="w-full max-w-7xl rounded-lg bg-white p-3 shadow-lg sm:p-6">
-        <div className="flex w-full flex-row flex-wrap items-center justify-between lg:flex-nowrap">
-          <h1 className="mb-6 mt-6 w-full text-balance text-center text-xl font-bold sm:mb-4 sm:mt-0 sm:text-2xl lg:text-left">
-            Free Invoice PDF Generator
-          </h1>
+    <TooltipProvider delayDuration={0}>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 sm:p-4">
+        <div className="mb-4 w-full max-w-7xl bg-white p-3 shadow-lg sm:mb-0 sm:rounded-lg sm:p-6">
+          <div className="flex w-full flex-row flex-wrap items-center justify-between lg:flex-nowrap">
+            <h1 className="mb-6 mt-6 w-full text-balance text-center text-xl font-bold sm:mb-4 sm:mt-0 sm:text-2xl lg:text-left">
+              Free Invoice PDF Generator
+            </h1>
 
-          <div className="mb-1 flex w-full flex-wrap justify-center gap-3 lg:flex-nowrap lg:justify-end">
-            <Button
-              onClick={handleShareInvoice}
-              variant="outline"
-              className="w-full lg:w-auto"
-            >
-              Generate a link to invoice
-            </Button>
-            {isDesktop ? (
-              <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
-            ) : null}
-          </div>
-        </div>
-        <div className="mb-4 flex flex-row items-center justify-center lg:mb-0 lg:justify-start">
-          <span className="relative bottom-0 text-sm text-gray-900 lg:bottom-3">
-            Made by{" "}
-            <a
-              href="https://dub.sh/vldzn.me"
-              className="underline transition-colors hover:text-blue-600"
-              target="_blank"
-            >
-              Vlad Sazonau
-            </a>
-            {" | "}
-            <a
-              href="https://github.com/VladSez/pdf-invoice-generator"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2"
-              title="View on GitHub"
-            >
-              <span className="transition-all group-hover:text-blue-600 group-hover:underline">
-                Open Source
-              </span>
-              <GithubIcon />
-            </a>
-            {" | "}
-            <a
-              href="mailto:vladsazon27@gmail.com"
-              className="transition-colors hover:text-blue-600 hover:underline"
-              target="_blank"
-            >
-              Contact me
-            </a>
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="lg:col-span-4">
-            <div className="h-[400px] overflow-auto p-3 lg:h-[600px]">
-              <InvoiceForm
-                invoiceData={invoiceDataState}
-                onInvoiceDataChange={handleInvoiceDataChange}
+            <div className="mb-1 flex w-full flex-wrap justify-center gap-3 lg:flex-nowrap lg:justify-end">
+              <CustomTooltip
+                trigger={
+                  <Button
+                    onClick={handleShareInvoice}
+                    _variant="outline"
+                    className="w-full lg:w-auto"
+                  >
+                    Generate a link to invoice
+                  </Button>
+                }
+                content="Share invoice with a link"
               />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Button
-                type="submit"
-                form={PDF_DATA_FORM_ID}
-                variant="outline"
-                className="mt-2 w-full"
-              >
-                Regenerate invoice
-              </Button>
-              {/* We show the pdf download link here only on mobile/tables */}
-              {isDesktop ? null : (
+              {isDesktop ? (
                 <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
-              )}
+              ) : null}
             </div>
-
-            <hr className="my-2 block w-full lg:hidden" />
           </div>
-          <div className="h-[600px] w-full max-w-full lg:col-span-8 lg:h-[630px]">
-            <InvoicePDFViewer>
-              <InvoicePdfTemplate invoiceData={invoiceDataState} />
-            </InvoicePDFViewer>
+          <div className="mb-4 flex flex-row items-center justify-center lg:mb-0 lg:justify-start">
+            <span className="relative bottom-0 text-sm text-gray-900 lg:bottom-3">
+              Made by{" "}
+              <a
+                href="https://dub.sh/vldzn.me"
+                className="underline transition-colors hover:text-blue-600"
+                target="_blank"
+              >
+                Vlad Sazonau
+              </a>
+              {" | "}
+              <a
+                href="https://github.com/VladSez/pdf-invoice-generator"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2"
+                title="View on GitHub"
+              >
+                <span className="transition-all group-hover:text-blue-600 group-hover:underline">
+                  Open Source
+                </span>
+                <GithubIcon />
+              </a>
+              {" | "}
+              <a
+                href="https://dub.sh/easy-invoice-pdf-feedback"
+                className="transition-colors hover:text-blue-600 hover:underline"
+                target="_blank"
+              >
+                Got feedback?
+              </a>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <div className="h-[400px] overflow-auto p-3 lg:h-[580px] lg:pl-0">
+                <InvoiceForm
+                  invoiceData={invoiceDataState}
+                  onInvoiceDataChange={handleInvoiceDataChange}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <CustomTooltip
+                  trigger={
+                    <Button
+                      type="submit"
+                      form={PDF_DATA_FORM_ID}
+                      _variant="outline"
+                      className="mt-2 w-full"
+                    >
+                      Regenerate invoice
+                    </Button>
+                  }
+                  content="Manually regenerate invoice"
+                />
+                {/* We show the pdf download link here only on mobile/tables */}
+                {isDesktop ? null : (
+                  <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
+                )}
+              </div>
+
+              <hr className="my-2 block w-full lg:hidden" />
+            </div>
+            <div className="h-[580px] w-full max-w-full lg:col-span-8">
+              <InvoicePDFViewer>
+                <InvoicePdfTemplate invoiceData={invoiceDataState} />
+              </InvoicePDFViewer>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
 

@@ -117,7 +117,7 @@ export function InvoiceItemsTable({
 
               {/* Type of GTU */}
               <View style={[styles.tableCol, styles.colGTU]}>
-                <Text style={styles.tableCell}></Text>
+                <Text style={[styles.tableCell]}>{item.typeOfGTU}</Text>
               </View>
 
               <View style={[styles.tableCol, styles.colAmount]}>
