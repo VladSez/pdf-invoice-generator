@@ -61,14 +61,14 @@ export const translations = {
     invoiceType: "Invoice Type",
     seller: {
       name: "Seller",
-      vatNo: "VAT no:",
+      vatNo: "VAT no",
       email: "e-mail",
       accountNumber: "Account Number",
       swiftBic: "SWIFT/BIC number",
     },
     buyer: {
       name: "Buyer",
-      vatNo: "VAT no:",
+      vatNo: "VAT no",
       email: "e-mail",
     },
     invoiceItemsTable: {
