@@ -25,25 +25,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/lib/hooks/use-media-query";
 import { CustomTooltip, TooltipProvider } from "@/components/ui/tooltip";
-
-const InvoicePDFDownloadLink = dynamic(
-  () =>
-    import("./components/invoice-pdf-download-link").then(
-      (mod) => mod.InvoicePDFDownloadLink
-    ),
-
-  {
-    ssr: true,
-    loading: () => {
-      // fake button styles
-      return (
-        <div className="mb-4 w-full rounded-lg bg-slate-900 px-4 py-2 text-center text-sm font-medium text-slate-50 shadow-sm shadow-black/5 hover:bg-slate-900/90 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90 lg:mb-0 lg:w-[180px]">
-          Loading document...
-        </div>
-      );
-    },
-  }
-);
+import { RegenerateInvoiceButton } from "./components/regenerate-invoice-button";
+import { InvoicePDFDownloadLink } from "./components/invoice-pdf-download-link";
 
 const InvoicePDFViewer = dynamic(
   () =>
@@ -156,7 +139,6 @@ const initialInvoiceData = {
 export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const [invoiceDataState, setInvoiceDataState] = useState<InvoiceData | null>(
@@ -360,19 +342,7 @@ export default function Home() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <CustomTooltip
-                  trigger={
-                    <Button
-                      type="submit"
-                      form={PDF_DATA_FORM_ID}
-                      _variant="outline"
-                      className="mt-2 w-full"
-                    >
-                      Regenerate invoice
-                    </Button>
-                  }
-                  content="Manually regenerate invoice"
-                />
+                <RegenerateInvoiceButton invoiceData={invoiceDataState} />
                 {/* We show the pdf download link here only on mobile/tables */}
                 {isDesktop ? null : (
                   <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
