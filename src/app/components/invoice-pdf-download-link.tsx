@@ -7,6 +7,7 @@ import { InvoicePdfTemplate } from "./invoice-pdf-template";
 import { loglib } from "@loglib/tracker";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { LOADING_TIMEOUT } from "./invoice-form";
 
 export function InvoicePDFDownloadLink({
   invoiceData,
@@ -30,7 +31,7 @@ export function InvoicePDFDownloadLink({
       // wait for 0.5 second before hiding the loader
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 500);
+      }, LOADING_TIMEOUT);
       return () => clearTimeout(timer);
     }
   }, [pdfLoading]);

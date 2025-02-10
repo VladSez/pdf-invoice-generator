@@ -27,6 +27,7 @@ import { z } from "zod";
 
 export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
+export const LOADING_TIMEOUT = 500;
 
 const checkIfDateOnInvoiceIsInCurrentMonth = (date: string) => {
   const today = dayjs();

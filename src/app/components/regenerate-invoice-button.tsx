@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CustomTooltip } from "@/components/ui/tooltip";
-import { PDF_DATA_FORM_ID } from "./invoice-form";
+import { LOADING_TIMEOUT, PDF_DATA_FORM_ID } from "./invoice-form";
 import { InvoicePdfTemplate } from "./invoice-pdf-template";
 import { usePDF } from "@react-pdf/renderer";
 import type { InvoiceData } from "../schema";
@@ -27,7 +27,7 @@ export function RegenerateInvoiceButton({
       // When PDF loading completes, wait for 0.5 second before hiding the loader
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 500);
+      }, LOADING_TIMEOUT);
       return () => clearTimeout(timer);
     }
   }, [pdfLoading]);
