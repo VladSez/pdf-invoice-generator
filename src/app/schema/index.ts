@@ -50,7 +50,7 @@ export const invoiceItemSchema = z
       })
       .transform(Number)
       .refine((val) => val >= 0, {
-        message: "Net price must be non-negative",
+        message: "Net price must be >= 0",
       }),
     netPriceFieldIsVisible: z.boolean().default(true),
 
