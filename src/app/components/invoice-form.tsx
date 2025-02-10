@@ -280,11 +280,12 @@ export function InvoiceForm({
               </SelectNative>
             )}
           />
-          <InputHelperMessage>
-            Select the language of the invoice
-          </InputHelperMessage>
-          {errors.language && (
+          {errors.language ? (
             <ErrorMessage>{errors.language.message}</ErrorMessage>
+          ) : (
+            <InputHelperMessage>
+              Select the language of the invoice
+            </InputHelperMessage>
           )}
         </div>
 
@@ -310,11 +311,13 @@ export function InvoiceForm({
               </SelectNative>
             )}
           />
-          <InputHelperMessage>
-            Select the currency of the invoice
-          </InputHelperMessage>
-          {errors.currency && (
+
+          {errors.currency ? (
             <ErrorMessage>{errors.currency.message}</ErrorMessage>
+          ) : (
+            <InputHelperMessage>
+              Select the currency of the invoice
+            </InputHelperMessage>
           )}
         </div>
 
@@ -342,11 +345,13 @@ export function InvoiceForm({
               </SelectNative>
             )}
           />
-          <InputHelperMessage>
-            Select the date format of the invoice
-          </InputHelperMessage>
-          {errors.dateFormat && (
+
+          {errors.dateFormat ? (
             <ErrorMessage>{errors.dateFormat.message}</ErrorMessage>
+          ) : (
+            <InputHelperMessage>
+              Select the date format of the invoice
+            </InputHelperMessage>
           )}
         </div>
 
@@ -1095,7 +1100,7 @@ export function InvoiceForm({
                           {...field}
                           id={`itemAmount${index}`}
                           type="number"
-                          step="0.01"
+                          step="1"
                           min="0"
                           className=""
                         />
@@ -1164,7 +1169,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemNetPrice${index}`} className="">
-                        Net Price
+                        Net Price in {currency}
                       </Label>
 
                       {/* Show/hide Net Price field in PDF switch */}
@@ -1208,7 +1213,7 @@ export function InvoiceForm({
                           {...field}
                           id={`itemNetPrice${index}`}
                           type="number"
-                          step="0.01"
+                          step="1"
                           min="0"
                           className=""
                         />
@@ -1263,16 +1268,23 @@ export function InvoiceForm({
                       name={`items.${index}.vat`}
                       control={control}
                       render={({ field }) => (
-                        <Input {...field} id={`itemVat${index}`} type="text" />
+                        <Input
+                          {...field}
+                          id={`itemVat${index}`}
+                          type="text"
+                          className=""
+                        />
                       )}
                     />
-                    <InputHelperMessage>
-                      Enter NP, OO or percentage value
-                    </InputHelperMessage>
-                    {errors.items?.[index]?.vat && (
+
+                    {errors.items?.[index]?.vat ? (
                       <ErrorMessage>
                         {errors.items[index].vat.message}
                       </ErrorMessage>
+                    ) : (
+                      <InputHelperMessage>
+                        Enter NP, OO or percentage value
+                      </InputHelperMessage>
                     )}
                   </div>
 
@@ -1280,7 +1292,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemNetAmount${index}`} className="">
-                        Net Amount
+                        Net Amount in {currency}
                       </Label>
 
                       {/* Show/hide Net Amount field in PDF switch */}
@@ -1319,24 +1331,31 @@ export function InvoiceForm({
                     <Controller
                       name={`items.${index}.netAmount`}
                       control={control}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id={`itemNetAmount${index}`}
-                          type="number"
-                          step="0.01"
-                          readOnly
-                          className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
-                        />
-                      )}
+                      render={({ field }) => {
+                        return (
+                          <Input
+                            {...field}
+                            id={`itemNetAmount${index}`}
+                            value={field.value.toLocaleString("en-US", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                            type="text"
+                            readOnly
+                            className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
+                          />
+                        );
+                      }}
                     />
-                    <InputHelperMessage>
-                      Calculated automatically based on Amount and Net Price
-                    </InputHelperMessage>
-                    {errors.items?.[index]?.netAmount && (
+
+                    {errors.items?.[index]?.netAmount ? (
                       <ErrorMessage>
                         {errors.items[index].netAmount.message}
                       </ErrorMessage>
+                    ) : (
+                      <InputHelperMessage>
+                        Calculated automatically based on Amount and Net Price
+                      </InputHelperMessage>
                     )}
                   </div>
 
@@ -1344,7 +1363,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemVatAmount${index}`} className="">
-                        VAT Amount
+                        VAT Amount in {currency}
                       </Label>
 
                       {/* Show/hide VAT Amount field in PDF switch */}
@@ -1387,22 +1406,25 @@ export function InvoiceForm({
                         <Input
                           {...field}
                           id={`itemVatAmount${index}`}
-                          type="number"
-                          step="1"
-                          max="100"
-                          min="0"
+                          value={field.value.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                          type="text"
                           readOnly
                           className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
-                    <InputHelperMessage>
-                      Calculated automatically based on Net Amount and VAT
-                    </InputHelperMessage>
-                    {errors.items?.[index]?.vatAmount && (
+
+                    {errors.items?.[index]?.vatAmount ? (
                       <ErrorMessage>
                         {errors.items[index].vatAmount.message}
                       </ErrorMessage>
+                    ) : (
+                      <InputHelperMessage>
+                        Calculated automatically based on Net Amount and VAT
+                      </InputHelperMessage>
                     )}
                   </div>
 
@@ -1410,7 +1432,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemPreTaxAmount${index}`} className="">
-                        Pre-tax Amount
+                        Pre-tax Amount in {currency}
                       </Label>
 
                       {/* Show/hide Pre-tax Amount field in PDF switch */}
@@ -1453,21 +1475,25 @@ export function InvoiceForm({
                         <Input
                           {...field}
                           id={`itemPreTaxAmount${index}`}
-                          type="number"
-                          step="0.01"
+                          value={field.value.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                          type="text"
                           readOnly
                           className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
-                    <InputHelperMessage>
-                      Calculated automatically based on Net Amount and VAT
-                      Amount
-                    </InputHelperMessage>
-                    {errors.items?.[index]?.preTaxAmount && (
+
+                    {errors.items?.[index]?.preTaxAmount ? (
                       <ErrorMessage>
                         {errors.items[index].preTaxAmount.message}
                       </ErrorMessage>
+                    ) : (
+                      <InputHelperMessage>
+                        Calculated automatically based on Net Amount and VAT
+                      </InputHelperMessage>
                     )}
                   </div>
                 </div>
@@ -1529,22 +1555,23 @@ export function InvoiceForm({
                   readOnly
                   id="total"
                   type="text"
-                  value={field.value
-                    .toLocaleString("en-US", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                    .replaceAll(/,/g, " ")}
+                  value={field.value.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                   className="block w-full cursor-not-allowed rounded-md border-gray-300 bg-gray-100 pl-12 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 sm:text-sm"
                 />
               )}
             />
           </div>
-          <InputHelperMessage>
-            Calculated automatically based on (Net Amount + VAT Amount) * Number
-            of invoice items
-          </InputHelperMessage>
-          {errors.total && <ErrorMessage>{errors.total.message}</ErrorMessage>}
+          {errors.total ? (
+            <ErrorMessage>{errors.total.message}</ErrorMessage>
+          ) : (
+            <InputHelperMessage>
+              Calculated automatically based on (Net Amount + VAT Amount) *
+              Number of invoice items
+            </InputHelperMessage>
+          )}
         </div>
 
         {/* Payment Method */}

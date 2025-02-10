@@ -40,7 +40,7 @@ export const invoiceItemSchema = z
       }),
     amountFieldIsVisible: z.boolean().default(true),
 
-    unit: z.string().min(1, "Unit is required").trim(),
+    unit: z.string().trim().optional(),
     unitFieldIsVisible: z.boolean().default(true),
 
     netPrice: z
