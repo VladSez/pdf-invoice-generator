@@ -123,17 +123,6 @@ export const styles = StyleSheet.create({
     fontWeight: 600,
   },
   // styles for specific column widths for invoice items table
-  // colNo: { width: "3%" },
-  // colName: { width: "36%" },
-  // colGTU: { width: "6%" },
-  // colAmount: { width: "7%" },
-  // colUnit: { width: "6%" },
-  // colNetPrice: { width: "10%" },
-  // colVAT: { width: "4%" },
-  // colNetAmount: { width: "10%" },
-  // colVATAmount: { width: "8%" },
-  // colPreTaxAmount: { width: "10%" },
-
   colNo: { flex: 0.45 }, // smallest width for numbers
   colName: { flex: 5 }, // larger width for text
   colGTU: { flex: 0.9 }, // small width for codes
