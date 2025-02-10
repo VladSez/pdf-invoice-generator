@@ -83,6 +83,8 @@ const initialInvoiceData = {
   dateFormat: DEFAULT_DATE_FORMAT,
 
   invoiceType: "Reverse Charge",
+  invoiceTypeFieldIsVisible: true,
+
   seller: {
     name: "Seller name",
     address: "Seller address",
@@ -91,7 +93,9 @@ const initialInvoiceData = {
     vatNoFieldIsVisible: true,
 
     email: "seller@email.com",
+
     accountNumber: "Seller account number",
+    accountNumberFieldIsVisible: true,
 
     swiftBic: "Seller swift bic",
     swiftBicFieldIsVisible: true,
@@ -137,8 +141,11 @@ const initialInvoiceData = {
   ],
   total: 0,
   paymentMethod: "wire transfer",
+
   paymentDue: paymentDue,
+
   notes: "Reverse charge",
+  notesFieldIsVisible: true,
 
   vatTableSummaryIsVisible: true,
   paymentMethodFieldIsVisible: true,
@@ -185,19 +192,6 @@ export default function Home() {
       if (savedData) {
         const json = JSON.parse(savedData);
         const parsedData = invoiceSchema.parse(json);
-
-        // const today = dayjs();
-
-        // const isInvoiceFromPreviousMonth = dayjs(
-        //   parsedData?.dateOfIssue
-        // ).isBefore(today, "month");
-
-        // if (isInvoiceFromPreviousMonth) {
-        //   parsedData.dateOfIssue = today.format("YYYY-MM-DD");
-        //   parsedData.dateOfService = today.endOf("month").format("YYYY-MM-DD");
-        //   parsedData.paymentDue = today.add(14, "days").format("YYYY-MM-DD");
-        //   parsedData.invoiceNumber = `1/${today.format("MM-YYYY")}`;
-        // }
 
         setInvoiceDataState(parsedData);
         // setInvoiceDataState(restOfInvoiceData);

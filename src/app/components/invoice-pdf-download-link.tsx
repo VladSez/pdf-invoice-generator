@@ -24,7 +24,6 @@ export function InvoicePDFDownloadLink({
         loglib.track("download_invoice");
       }}
     >
-      {/* @ts-expect-error PR with fix: https://github.com/diegomura/react-pdf/pull/2888 */}
       {({ loading }) => (loading ? "Loading document..." : "Download PDF")}
     </PDFDownloadLink>
   );

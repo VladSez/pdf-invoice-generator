@@ -7,21 +7,24 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prettify": "prettier --write --cache '**/*.{ts?(x),json,js,mjs,yml,yaml,md}'"
+    "type-check": "tsc --noEmit",
+    "prettify": "prettier --write --cache '**/*.{ts?(x),json,js,mjs,yml,yaml,md}'",
+    "update-deps": "pnpm upgrade --interactive --latest",
+    "dedupe": "pnpm dedupe"
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.0",
     "@loglib/tracker": "0.8.0",
-    "@radix-ui/react-label": "2.1.1",
-    "@radix-ui/react-slot": "1.1.1",
-    "@radix-ui/react-switch": "1.1.2",
-    "@radix-ui/react-tooltip": "1.1.6",
-    "@react-pdf/layout": "4.0.1",
-    "@react-pdf/renderer": "4.0.1",
+    "@radix-ui/react-label": "2.1.2",
+    "@radix-ui/react-slot": "1.1.2",
+    "@radix-ui/react-switch": "1.1.3",
+    "@radix-ui/react-tooltip": "1.1.8",
+    "@react-pdf/layout": "4.2.2",
+    "@react-pdf/renderer": "4.2.1",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "dayjs": "1.11.13",
-    "lucide-react": "0.460.0",
+    "lucide-react": "0.475.0",
     "lz-string": "1.5.0",
     "n2words": "1.21.0",
     "next": "14.2.15",
@@ -29,11 +32,11 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-hook-form": "7.53.1",
-    "sonner": "1.7.1",
+    "sonner": "1.7.4",
     "tailwind-merge": "2.6.0",
     "tailwindcss-animate": "1.0.7",
     "use-debounce": "10.0.4",
-    "zod": "3.23.8"
+    "zod": "3.24.1"
   },
   "devDependencies": {
     "@types/node": "22.8.1",
@@ -45,6 +48,6 @@
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "0.6.9",
     "tailwindcss": "3.4.14",
-    "typescript": "5.6.3"
+    "typescript": "5.7.3"
   }
 }
