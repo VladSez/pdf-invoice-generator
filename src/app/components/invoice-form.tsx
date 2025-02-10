@@ -1,28 +1,46 @@
-import React, { useCallback, useEffect, useId } from "react";
-import { useForm, Controller, useWatch, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  invoiceSchema,
-  type InvoiceData,
-  SUPPORTED_CURRENCIES,
-  SUPPORTED_LANGUAGES,
-  type InvoiceItemData,
   invoiceItemSchema,
+  invoiceSchema,
+  SUPPORTED_CURRENCIES,
+  SUPPORTED_DATE_FORMATS,
+  SUPPORTED_LANGUAGES,
+  type InvoiceData,
+  type InvoiceItemData,
 } from "@/app/schema";
-import { useDebouncedCallback } from "use-debounce";
-import { Info, Plus, Trash2 } from "lucide-react";
-import { z } from "zod";
-import { loglib } from "@loglib/tracker";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputHelperMessage } from "@/components/ui/input-helper-message";
 import { Label } from "@/components/ui/label";
 import { SelectNative } from "@/components/ui/select-native";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { InputHelperMessage } from "@/components/ui/input-helper-message";
-import { Button } from "@/components/ui/button";
 import { CustomTooltip } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loglib } from "@loglib/tracker";
+import dayjs from "dayjs";
+import { AlertTriangle, Plus, Trash2 } from "lucide-react";
+import React, { useCallback, useEffect } from "react";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { useDebouncedCallback } from "use-debounce";
+import { z } from "zod";
 
 export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
+
+const checkIfDateOnInvoiceIsInCurrentMonth = (date: string) => {
+  const today = dayjs();
+
+  if (!date) return false;
+
+  const d2 = dayjs(date);
+
+  if (!d2.isValid()) return false;
+
+  const isSameMonth = today.isSame(d2, "month");
+
+  return isSameMonth;
+};
 
 const calculateItemTotals = (item: InvoiceItemData | null) => {
   if (!item) return null;
@@ -56,9 +74,30 @@ const ErrorMessage = ({ children }: { children: React.ReactNode }) => {
 
 const Legend = ({ children }: { children: React.ReactNode }) => {
   return (
-    <legend className="mb-2 text-lg font-semibold text-gray-900">
+    <legend className="text-lg font-semibold text-gray-900">{children}</legend>
+  );
+};
+
+const AlertIcon = () => {
+  return <AlertTriangle className="mr-1 inline-block h-3 w-3 text-amber-500" />;
+};
+
+const ButtonHelper = ({
+  children,
+  className,
+  ...props
+}: { children: React.ReactNode; className?: string } & React.ComponentProps<
+  typeof Button
+>) => {
+  return (
+    <Button
+      _variant="link"
+      _size="sm"
+      className={cn("h-5 text-pretty p-0 text-left underline", className)}
+      {...props}
+    >
       {children}
-    </legend>
+    </Button>
   );
 };
 
@@ -86,12 +125,32 @@ export function InvoiceForm({
   const currency = useWatch({ control, name: "currency" });
   const invoiceItems = useWatch({ control, name: "items" });
 
+  const invoiceNumber = useWatch({ control, name: "invoiceNumber" });
+  const dateOfIssue = useWatch({ control, name: "dateOfIssue" });
+  const dateOfService = useWatch({ control, name: "dateOfService" });
+  const paymentDue = useWatch({ control, name: "paymentDue" });
+
+  const isDateOfIssueInCurrentMonth =
+    checkIfDateOnInvoiceIsInCurrentMonth(dateOfIssue);
+
+  const isDateOfServiceInCurrentMonth =
+    checkIfDateOnInvoiceIsInCurrentMonth(dateOfService);
+
+  const isPaymentDueBeforeDateOfIssue = dayjs(paymentDue).isBefore(
+    dayjs(dateOfIssue)
+  );
+
+  const extractInvoiceMonthAndYear = invoiceNumber?.split("/")?.[1];
+
+  const isInvoiceNumberInCurrentMonth =
+    extractInvoiceMonthAndYear === dayjs().format("MM-YYYY");
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "items",
   });
 
-  const sellerSelectId = useId();
+  // const sellerSelectId = useId();
 
   // calculate totals and other values when invoice items change
   useEffect(() => {
@@ -203,7 +262,7 @@ export function InvoiceForm({
         className="mb-4 space-y-3.5"
         id={PDF_DATA_FORM_ID}
       >
-        {/* Language Select - Add this after Currency Select */}
+        {/* Language PDF Select */}
         <div>
           <Label htmlFor="language" className="mb-1">
             Invoice PDF Language
@@ -229,85 +288,6 @@ export function InvoiceForm({
           )}
         </div>
 
-        {/* Invoice Number */}
-        <div>
-          <Label htmlFor="invoiceNumber" className="mb-1">
-            Invoice Number
-          </Label>
-          <Controller
-            name="invoiceNumber"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                type="text"
-                id="invoiceNumber"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-              />
-            )}
-          />
-          {errors.invoiceNumber && (
-            <ErrorMessage>{errors.invoiceNumber.message}</ErrorMessage>
-          )}
-        </div>
-
-        {/* Date of Issue */}
-        <div>
-          <Label htmlFor="dateOfIssue" className="mb-1">
-            Date of Issue
-          </Label>
-          <Controller
-            name="dateOfIssue"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} type="date" id="dateOfIssue" className="" />
-            )}
-          />
-          {errors.dateOfIssue && (
-            <ErrorMessage>{errors.dateOfIssue.message}</ErrorMessage>
-          )}
-        </div>
-
-        {/* Date of Service */}
-        <div>
-          <Label htmlFor="dateOfService" className="mb-1">
-            Date of Service
-          </Label>
-          <Controller
-            name="dateOfService"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} type="date" id="dateOfService" className="" />
-            )}
-          />
-          {errors.dateOfService && (
-            <ErrorMessage>{errors.dateOfService.message}</ErrorMessage>
-          )}
-        </div>
-
-        {/* Invoice Type */}
-        <div>
-          <Label htmlFor="invoiceType" className="mb-1">
-            Invoice Type
-          </Label>
-          <Controller
-            name="invoiceType"
-            control={control}
-            render={({ field }) => (
-              <Textarea
-                {...field}
-                id="invoiceType"
-                rows={2}
-                className=""
-                placeholder="Enter invoice type"
-              />
-            )}
-          />
-          {errors.invoiceType && (
-            <ErrorMessage>{errors.invoiceType.message}</ErrorMessage>
-          )}
-        </div>
-
         {/* Currency Select */}
         <div>
           <Label htmlFor="currency" className="mb-1">
@@ -330,8 +310,208 @@ export function InvoiceForm({
               </SelectNative>
             )}
           />
+          <InputHelperMessage>
+            Select the currency of the invoice
+          </InputHelperMessage>
           {errors.currency && (
             <ErrorMessage>{errors.currency.message}</ErrorMessage>
+          )}
+        </div>
+
+        {/* Date Format for Date of Issue, Date of Service and Payment Due Date, etc. */}
+        <div>
+          <Label htmlFor="dateFormat" className="mb-1">
+            Date Format
+          </Label>
+          <Controller
+            name="dateFormat"
+            control={control}
+            render={({ field }) => (
+              <SelectNative {...field} id="dateFormat" className="block">
+                {SUPPORTED_DATE_FORMATS.map((format) => {
+                  const preview = dayjs().format(format);
+                  const isDefault = format === SUPPORTED_DATE_FORMATS[0];
+
+                  return (
+                    <option key={format} value={format}>
+                      {format} (Preview: {preview}){" "}
+                      {isDefault ? "(default)" : ""}
+                    </option>
+                  );
+                })}
+              </SelectNative>
+            )}
+          />
+          <InputHelperMessage>
+            Select the date format of the invoice
+          </InputHelperMessage>
+          {errors.dateFormat && (
+            <ErrorMessage>{errors.dateFormat.message}</ErrorMessage>
+          )}
+        </div>
+
+        {/* Invoice Number */}
+        <div>
+          <Label htmlFor="invoiceNumber" className="mb-1">
+            Invoice Number
+          </Label>
+          <Controller
+            name="invoiceNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                type="text"
+                id="invoiceNumber"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+              />
+            )}
+          />
+          {errors.invoiceNumber && (
+            <ErrorMessage>{errors.invoiceNumber.message}</ErrorMessage>
+          )}
+          {!isInvoiceNumberInCurrentMonth && !errors.invoiceNumber ? (
+            <InputHelperMessage>
+              <span className="flex items-center text-balance">
+                <AlertIcon />
+                Invoice number does not match current month
+              </span>
+
+              <ButtonHelper
+                onClick={() => {
+                  const currentMonth = dayjs().format("MM-YYYY");
+                  setValue("invoiceNumber", `1/${currentMonth}`);
+                }}
+              >
+                Click to set the invoice number to the current month (
+                {dayjs().format("MM-YYYY")})
+              </ButtonHelper>
+            </InputHelperMessage>
+          ) : null}
+        </div>
+
+        {/* Date of Issue */}
+        <div>
+          <Label htmlFor="dateOfIssue" className="mb-1">
+            Date of Issue
+          </Label>
+          <Controller
+            name="dateOfIssue"
+            control={control}
+            render={({ field }) => (
+              <Input {...field} type="date" id="dateOfIssue" className="" />
+            )}
+          />
+          {errors.dateOfIssue && (
+            <ErrorMessage>{errors.dateOfIssue.message}</ErrorMessage>
+          )}
+          {!isDateOfIssueInCurrentMonth && !errors.dateOfIssue ? (
+            <InputHelperMessage>
+              <span className="flex items-center">
+                <AlertIcon />
+                Date of issue does not match current month
+              </span>
+
+              <ButtonHelper
+                onClick={() => {
+                  const currentMonth = dayjs().format("YYYY-MM-DD");
+
+                  setValue("dateOfIssue", currentMonth);
+                }}
+              >
+                Click to set the date to today ({dayjs().format("DD/MM/YYYY")})
+              </ButtonHelper>
+            </InputHelperMessage>
+          ) : null}
+        </div>
+
+        {/* Date of Service */}
+        <div>
+          <Label htmlFor="dateOfService" className="mb-1">
+            Date of Service
+          </Label>
+          <Controller
+            name="dateOfService"
+            control={control}
+            render={({ field }) => (
+              <Input {...field} type="date" id="dateOfService" className="" />
+            )}
+          />
+          {errors.dateOfService && (
+            <ErrorMessage>{errors.dateOfService.message}</ErrorMessage>
+          )}
+
+          {!isDateOfServiceInCurrentMonth && !errors.dateOfService ? (
+            <InputHelperMessage>
+              <span className="flex items-center">
+                <AlertIcon />
+                Date of service does not match current month
+              </span>
+
+              <ButtonHelper
+                onClick={() => {
+                  const lastDayOfCurrentMonth = dayjs()
+                    .endOf("month")
+                    .format("YYYY-MM-DD");
+
+                  setValue("dateOfService", lastDayOfCurrentMonth);
+                }}
+              >
+                Click to set the date to the last day of the current month (
+                {dayjs().endOf("month").format("DD/MM/YYYY")})
+              </ButtonHelper>
+            </InputHelperMessage>
+          ) : null}
+        </div>
+
+        {/* Invoice Type */}
+        <div>
+          <div className="relative mb-2 flex items-center justify-between">
+            <Label htmlFor="invoiceType" className="">
+              Invoice Type
+            </Label>
+
+            {/* Show/hide Invoice Type field in PDF switch */}
+            <div className="inline-flex items-center gap-2">
+              <Controller
+                name={`invoiceTypeFieldIsVisible`}
+                control={control}
+                render={({ field: { value, onChange, ...field } }) => (
+                  <Switch
+                    {...field}
+                    id={`invoiceTypeFieldIsVisible`}
+                    checked={value}
+                    onCheckedChange={onChange}
+                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                  />
+                )}
+              />
+              <CustomTooltip
+                trigger={
+                  <Label htmlFor={`invoiceTypeFieldIsVisible`}>
+                    Show in PDF
+                  </Label>
+                }
+                content='Show/Hide the "Invoice Type" Field in the PDF'
+              />
+            </div>
+          </div>
+
+          <Controller
+            name="invoiceType"
+            control={control}
+            render={({ field }) => (
+              <Textarea
+                {...field}
+                id="invoiceType"
+                rows={2}
+                className=""
+                placeholder="Enter invoice type"
+              />
+            )}
+          />
+          {errors.invoiceType && (
+            <ErrorMessage>{errors.invoiceType.message}</ErrorMessage>
           )}
         </div>
 
@@ -339,32 +519,37 @@ export function InvoiceForm({
         <fieldset className="rounded-lg border p-4 shadow">
           <Legend>Seller Information</Legend>
 
+          {/* TODO: Will be done later */
+          /*
           <div className="relative bottom-3 flex items-end justify-end gap-2">
             <div className="space-y-1">
               <div className="flex items-center gap-1">
-                <Label htmlFor={sellerSelectId}>Select Seller</Label>
-                <CustomTooltip
-                  trigger={<Info className="h-3 w-3" />}
-                  content="You can save multiple sellers to use them later"
-                />
+                  <Label htmlFor={sellerSelectId}>Select Seller</Label>
+                  <CustomTooltip
+                    trigger={<Info className="h-3 w-3" />}
+                    content="You can save multiple sellers to use them later"
+                  />
+                </div>
+                <SelectNative
+                  id={sellerSelectId}
+                  className="block h-8 text-[12px] lg:text-[12px]"
+                >
+                  {/* TODO: fetch sellers from local storage */
+          /*}
+                  <option value="1">Seller 1</option>
+                  <option value="2">Seller 2</option>
+                  <option value="3">Seller 3</option>
+                </SelectNative>
               </div>
-              <SelectNative
-                id={sellerSelectId}
-                className="block h-8 text-[12px] lg:text-[12px]"
-              >
-                {/* TODO: fetch sellers from local storage */}
-                <option value="1">Seller 1</option>
-                <option value="2">Seller 2</option>
-                <option value="3">Seller 3</option>
-              </SelectNative>
-            </div>
 
-            {/* TODO: add new seller modal + form and save to local storage */}
-            <Button _variant="outline" _size="sm" className="">
-              New Seller
-              <Plus className="ml-1 h-3 w-3" />
-            </Button>
-          </div>
+              {/* TODO: add new seller modal + form and save to local storage */
+          /*}
+              <Button _variant="outline" _size="sm" className="">
+                New Seller
+                <Plus className="ml-1 h-3 w-3" />
+              </Button>
+            </div>
+          </> */}
           <div className="space-y-4">
             <div>
               <Label htmlFor="sellerName" className="mb-1">
@@ -404,9 +589,36 @@ export function InvoiceForm({
             </div>
 
             <div>
-              <Label htmlFor="sellerVatNo" className="mb-1">
-                VAT Number
-              </Label>
+              <div className="relative mb-2 flex items-center justify-between">
+                <Label htmlFor="sellerVatNo" className="">
+                  VAT Number
+                </Label>
+
+                {/* Show/hide Seller VAT Number field in PDF switch */}
+                <div className="inline-flex items-center gap-2">
+                  <Controller
+                    name={`seller.vatNoFieldIsVisible`}
+                    control={control}
+                    render={({ field: { value, onChange, ...field } }) => (
+                      <Switch
+                        {...field}
+                        id={`sellerVatNoFieldIsVisible`}
+                        checked={value}
+                        onCheckedChange={onChange}
+                        className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                      />
+                    )}
+                  />
+                  <CustomTooltip
+                    trigger={
+                      <Label htmlFor={`sellerVatNoFieldIsVisible`}>
+                        Show in PDF
+                      </Label>
+                    }
+                    content='Show/Hide the "Seller VAT Number" Field in the PDF'
+                  />
+                </div>
+              </div>
               <Controller
                 name="seller.vatNo"
                 control={control}
@@ -440,10 +652,38 @@ export function InvoiceForm({
               )}
             </div>
 
+            {/* Account Number */}
             <div>
-              <Label htmlFor="sellerAccountNumber" className="mb-1">
-                Account Number
-              </Label>
+              <div className="relative mb-2 flex items-center justify-between">
+                <Label htmlFor="sellerAccountNumber" className="">
+                  Account Number
+                </Label>
+
+                {/* Show/hide Account Number field in PDF switch */}
+                <div className="inline-flex items-center gap-2">
+                  <Controller
+                    name={`seller.accountNumberFieldIsVisible`}
+                    control={control}
+                    render={({ field: { value, onChange, ...field } }) => (
+                      <Switch
+                        {...field}
+                        id={`sellerAccountNumberFieldIsVisible`}
+                        checked={value}
+                        onCheckedChange={onChange}
+                        className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                      />
+                    )}
+                  />
+                  <CustomTooltip
+                    trigger={
+                      <Label htmlFor={`sellerAccountNumberFieldIsVisible`}>
+                        Show in PDF
+                      </Label>
+                    }
+                    content='Show/Hide the "Account Number" Field in the PDF'
+                  />
+                </div>
+              </div>
               <Controller
                 name="seller.accountNumber"
                 control={control}
@@ -463,10 +703,39 @@ export function InvoiceForm({
               )}
             </div>
 
+            {/* SWIFT/BIC */}
             <div>
-              <Label htmlFor="sellerSwiftBic" className="mb-1">
-                SWIFT/BIC
-              </Label>
+              <div className="relative mb-2 flex items-center justify-between">
+                <Label htmlFor="sellerSwiftBic" className="">
+                  SWIFT/BIC
+                </Label>
+
+                {/* Show/hide SWIFT/BIC field in PDF switch */}
+                <div className="inline-flex items-center gap-2">
+                  <Controller
+                    name={`seller.swiftBicFieldIsVisible`}
+                    control={control}
+                    render={({ field: { value, onChange, ...field } }) => (
+                      <Switch
+                        {...field}
+                        id={`sellerSwiftBicFieldIsVisible`}
+                        checked={value}
+                        onCheckedChange={onChange}
+                        className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                      />
+                    )}
+                  />
+                  <CustomTooltip
+                    trigger={
+                      <Label htmlFor={`sellerSwiftBicFieldIsVisible`}>
+                        Show in PDF
+                      </Label>
+                    }
+                    content='Show/Hide the "SWIFT/BIC" Field in the PDF'
+                  />
+                </div>
+              </div>
+
               <Controller
                 name="seller.swiftBic"
                 control={control}
@@ -527,10 +796,39 @@ export function InvoiceForm({
               )}
             </div>
 
+            {/* Buyer VAT Number */}
             <div>
-              <Label htmlFor="buyerVatNo" className="mb-1">
-                VAT Number
-              </Label>
+              <div className="relative mb-2 flex items-center justify-between">
+                <Label htmlFor="buyerVatNo" className="">
+                  VAT Number
+                </Label>
+
+                {/* Show/hide Buyer VAT Number field in PDF switch */}
+                <div className="inline-flex items-center gap-2">
+                  <Controller
+                    name={`buyer.vatNoFieldIsVisible`}
+                    control={control}
+                    render={({ field: { value, onChange, ...field } }) => (
+                      <Switch
+                        {...field}
+                        id={`buyerVatNoFieldIsVisible`}
+                        checked={value}
+                        onCheckedChange={onChange}
+                        className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                      />
+                    )}
+                  />
+                  <CustomTooltip
+                    trigger={
+                      <Label htmlFor={`buyerVatNoFieldIsVisible`}>
+                        Show in PDF
+                      </Label>
+                    }
+                    content='Show/Hide the "Buyer VAT Number" Field in the PDF'
+                  />
+                </div>
+              </div>
+
               <Controller
                 name="buyer.vatNo"
                 control={control}
@@ -565,14 +863,61 @@ export function InvoiceForm({
         <fieldset className="rounded-lg border p-4 shadow">
           <Legend>Invoice Items</Legend>
 
+          <div className="mb-3 space-y-4">
+            {/* Show Number column on PDF switch */}
+            <div className="relative flex items-center justify-between">
+              <Label htmlFor={`itemInvoiceItemNumberIsVisible0`}>
+                Show &quot;Number&quot; Column in the Invoice Items Table
+              </Label>
+
+              <Controller
+                name={`items.0.invoiceItemNumberIsVisible`}
+                control={control}
+                render={({ field: { value, onChange, ...field } }) => (
+                  <Switch
+                    {...field}
+                    id={`itemInvoiceItemNumberIsVisible0`}
+                    checked={value}
+                    onCheckedChange={onChange}
+                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                  />
+                )}
+              />
+            </div>
+
+            {/* Show VAT Table Summary in PDF switch */}
+            <div className="relative flex items-center justify-between">
+              <Label htmlFor={`vatTableSummaryIsVisible`}>
+                Show &quot;VAT Table Summary&quot; in the PDF
+              </Label>
+
+              <Controller
+                name={`vatTableSummaryIsVisible`}
+                control={control}
+                render={({ field: { value, onChange, ...field } }) => (
+                  <Switch
+                    {...field}
+                    id={`vatTableSummaryIsVisible`}
+                    checked={value}
+                    onCheckedChange={onChange}
+                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                  />
+                )}
+              />
+            </div>
+          </div>
+
           {fields.map((field, index) => {
+            const isNotFirstItem = index > 0;
+            const isFirstItem = index === 0;
+
             return (
               <fieldset
                 key={field.id}
                 className="relative mb-4 rounded-lg border p-4 shadow"
               >
                 {/* Delete invoice item button */}
-                {index > 0 ? (
+                {isNotFirstItem ? (
                   <div className="absolute -right-3 -top-10">
                     <button
                       type="button"
@@ -586,11 +931,44 @@ export function InvoiceForm({
                 ) : null}
                 <Legend>Item {index + 1}</Legend>
                 <div className="relative mb-8 space-y-4">
-                  {/* invoice item name */}
                   <div>
-                    <Label htmlFor={`itemName${index}`} className="mb-1">
-                      Name
-                    </Label>
+                    {/* Invoice Item Name */}
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemName${index}`} className="">
+                        Name
+                      </Label>
+
+                      {/* Show/hide Name field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.nameFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemNameFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label htmlFor={`itemNameFieldIsVisible${index}`}>
+                                Show in PDF
+                              </Label>
+                            }
+                            content="Show/hide the 'Name of Goods/Service' Column in the PDF"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Name input */}
                     <Controller
                       name={`items.${index}.name`}
                       control={control}
@@ -610,10 +988,46 @@ export function InvoiceForm({
                     )}
                   </div>
 
+                  {/* Invoice Item Type of GTU */}
                   <div>
-                    <Label htmlFor={`itemTypeOfGTU${index}`} className="mb-1">
-                      Type of GTU
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemTypeOfGTU${index}`} className="">
+                        Type of GTU
+                      </Label>
+
+                      {/* Show/hide Type of GTU field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.typeOfGTUFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemTypeOfGTUFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label
+                                htmlFor={`itemTypeOfGTUFieldIsVisible${index}`}
+                              >
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "Type of GTU" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Type of GTU input */}
                     <Controller
                       name={`items.${index}.typeOfGTU`}
                       control={control}
@@ -633,11 +1047,46 @@ export function InvoiceForm({
                     )}
                   </div>
 
-                  {/* Item Amount */}
+                  {/* Invoice Item Amount */}
                   <div>
-                    <Label htmlFor={`itemAmount${index}`} className="mb-1">
-                      Amount
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemAmount${index}`} className="">
+                        Amount
+                      </Label>
+
+                      {/* Show/hide Amount field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.amountFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemAmountFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label
+                                htmlFor={`itemAmountFieldIsVisible${index}`}
+                              >
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "Amount" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Amount input */}
                     <Controller
                       name={`items.${index}.amount`}
                       control={control}
@@ -659,21 +1108,49 @@ export function InvoiceForm({
                     )}
                   </div>
 
-                  {/* Item Unit */}
+                  {/* Invoice Item Unit */}
                   <div>
-                    <Label htmlFor={`itemUnit${index}`} className="mb-1">
-                      Unit
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemUnit${index}`} className="">
+                        Unit
+                      </Label>
+
+                      {/* Show/hide Unit field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.unitFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemUnitFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label htmlFor={`itemUnitFieldIsVisible${index}`}>
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "Unit" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Unit input */}
                     <Controller
                       name={`items.${index}.unit`}
                       control={control}
                       render={({ field }) => (
-                        <Input
-                          {...field}
-                          id={`itemUnit${index}`}
-                          type="text"
-                          className=""
-                        />
+                        <Input {...field} id={`itemUnit${index}`} type="text" />
                       )}
                     />
                     {errors.items?.[index]?.unit && (
@@ -683,11 +1160,46 @@ export function InvoiceForm({
                     )}
                   </div>
 
-                  {/* New Net Price field */}
+                  {/* Invoice Item Net Price */}
                   <div>
-                    <Label htmlFor={`itemNetPrice${index}`} className="mb-1">
-                      Net Price
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemNetPrice${index}`} className="">
+                        Net Price
+                      </Label>
+
+                      {/* Show/hide Net Price field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.netPriceFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemNetPriceFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label
+                                htmlFor={`itemNetPriceFieldIsVisible${index}`}
+                              >
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "Net Price" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Net price input */}
                     <Controller
                       name={`items.${index}.netPrice`}
                       control={control}
@@ -709,21 +1221,49 @@ export function InvoiceForm({
                     )}
                   </div>
 
-                  {/* New VAT field */}
+                  {/* Invoice Item VAT */}
                   <div>
-                    <Label htmlFor={`itemVat${index}`} className="mb-1">
-                      VAT
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemVat${index}`} className="">
+                        VAT
+                      </Label>
+
+                      {/* Show/hide VAT field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.vatFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemVatFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label htmlFor={`itemVatFieldIsVisible${index}`}>
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "VAT" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* VAT input */}
                     <Controller
                       name={`items.${index}.vat`}
                       control={control}
                       render={({ field }) => (
-                        <Input
-                          {...field}
-                          id={`itemVat${index}`}
-                          type="text"
-                          className=""
-                        />
+                        <Input {...field} id={`itemVat${index}`} type="text" />
                       )}
                     />
                     <InputHelperMessage>
@@ -736,11 +1276,46 @@ export function InvoiceForm({
                     )}
                   </div>
 
-                  {/* New Net Amount field */}
+                  {/* Invoice Item Net Amount */}
                   <div>
-                    <Label htmlFor={`itemNetAmount${index}`} className="mb-1">
-                      Net Amount
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemNetAmount${index}`} className="">
+                        Net Amount
+                      </Label>
+
+                      {/* Show/hide Net Amount field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.netAmountFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemNetAmountFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label
+                                htmlFor={`itemNetAmountFieldIsVisible${index}`}
+                              >
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "Net Amount" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Invoice Item Net Amount (calculated automatically) */}
                     <Controller
                       name={`items.${index}.netAmount`}
                       control={control}
@@ -765,11 +1340,46 @@ export function InvoiceForm({
                     )}
                   </div>
 
-                  {/* This should probably be readonly field and calculated automatically based on VAT in % and Net Amount */}
+                  {/* Invoice Item VAT Amount (calculated automatically) */}
                   <div>
-                    <Label htmlFor={`itemVatAmount${index}`} className="mb-1">
-                      VAT Amount
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemVatAmount${index}`} className="">
+                        VAT Amount
+                      </Label>
+
+                      {/* Show/hide VAT Amount field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.vatAmountFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemVatAmountFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label
+                                htmlFor={`itemVatAmountFieldIsVisible${index}`}
+                              >
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "VAT Amount" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* VAT amount input */}
                     <Controller
                       name={`items.${index}.vatAmount`}
                       control={control}
@@ -798,12 +1408,44 @@ export function InvoiceForm({
 
                   {/* Pre-tax Amount field */}
                   <div>
-                    <Label
-                      htmlFor={`itemPreTaxAmount${index}`}
-                      className="mb-1"
-                    >
-                      Pre-tax Amount
-                    </Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label htmlFor={`itemPreTaxAmount${index}`} className="">
+                        Pre-tax Amount
+                      </Label>
+
+                      {/* Show/hide Pre-tax Amount field in PDF switch */}
+                      {isFirstItem ? (
+                        <div className="inline-flex items-center gap-2">
+                          <Controller
+                            name={`items.${index}.preTaxAmountFieldIsVisible`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...field },
+                            }) => (
+                              <Switch
+                                {...field}
+                                id={`itemPreTaxAmountFieldIsVisible${index}`}
+                                checked={value}
+                                onCheckedChange={onChange}
+                                className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                              />
+                            )}
+                          />
+                          <CustomTooltip
+                            trigger={
+                              <Label
+                                htmlFor={`itemPreTaxAmountFieldIsVisible${index}`}
+                              >
+                                Show in PDF
+                              </Label>
+                            }
+                            content='Show/hide the "Pre-tax Amount" Column in the PDF'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Pre-tax amount input */}
                     <Controller
                       name={`items.${index}.preTaxAmount`}
                       control={control}
@@ -840,14 +1482,25 @@ export function InvoiceForm({
               loglib.track("add_invoice_item");
 
               append({
+                invoiceItemNumberIsVisible: true,
                 name: "",
+                nameFieldIsVisible: true,
                 amount: 1,
+                amountFieldIsVisible: true,
                 unit: "",
+                unitFieldIsVisible: true,
                 netPrice: 0,
+                netPriceFieldIsVisible: true,
                 vat: "NP",
+                vatFieldIsVisible: true,
                 netAmount: 0,
+                netAmountFieldIsVisible: true,
                 vatAmount: 0,
+                vatAmountFieldIsVisible: true,
                 preTaxAmount: 0,
+                preTaxAmountFieldIsVisible: true,
+                typeOfGTU: "",
+                typeOfGTUFieldIsVisible: true,
               });
             }}
             className="mb-1 flex items-center text-sm font-medium text-gray-700 hover:text-black"
@@ -857,7 +1510,7 @@ export function InvoiceForm({
           </button>
         </fieldset>
 
-        {/* Total field (now with currency) */}
+        {/* Total field (with currency) */}
         <div className="">
           <div className="mt-5" />
           <Label htmlFor="total" className="mb-1">
@@ -888,16 +1541,45 @@ export function InvoiceForm({
             />
           </div>
           <InputHelperMessage>
-            Calculated automatically based on Net Amount + VAT Amount
+            Calculated automatically based on (Net Amount + VAT Amount) * Number
+            of invoice items
           </InputHelperMessage>
           {errors.total && <ErrorMessage>{errors.total.message}</ErrorMessage>}
         </div>
 
         {/* Payment Method */}
         <div>
-          <Label htmlFor="paymentMethod" className="mb-1">
-            Payment Method
-          </Label>
+          <div className="relative mb-2 mt-6 flex items-center justify-between">
+            <Label htmlFor="paymentMethod" className="">
+              Payment Method
+            </Label>
+
+            {/* Show/hide Payment Method field in PDF switch */}
+            <div className="inline-flex items-center gap-2">
+              <Controller
+                name={`paymentMethodFieldIsVisible`}
+                control={control}
+                render={({ field: { value, onChange, ...field } }) => (
+                  <Switch
+                    {...field}
+                    id={`paymentMethodFieldIsVisible`}
+                    checked={value}
+                    onCheckedChange={onChange}
+                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                  />
+                )}
+              />
+              <CustomTooltip
+                trigger={
+                  <Label htmlFor={`paymentMethodFieldIsVisible`}>
+                    Show in PDF
+                  </Label>
+                }
+                content='Show/Hide the "Payment Method" Field in the PDF'
+              />
+            </div>
+          </div>
+
           <Controller
             name="paymentMethod"
             control={control}
@@ -930,12 +1612,59 @@ export function InvoiceForm({
           {errors.paymentDue && (
             <ErrorMessage>{errors.paymentDue.message}</ErrorMessage>
           )}
+          {!errors.paymentDue && isPaymentDueBeforeDateOfIssue ? (
+            <InputHelperMessage>
+              <span className="flex items-center text-balance">
+                <AlertIcon />
+                Payment due date is before date of issue (
+                {dayjs(dateOfIssue).format("DD.MM.YYYY")})
+              </span>
+              <ButtonHelper
+                onClick={() => {
+                  const newPaymentDue = dayjs(dateOfIssue)
+                    .add(14, "days")
+                    .format("YYYY-MM-DD");
+
+                  setValue("paymentDue", newPaymentDue);
+                }}
+              >
+                Click to set payment due date 14 days after the date of issue (
+                {dayjs(dateOfIssue).add(14, "days").format("DD/MM/YYYY")})
+              </ButtonHelper>
+            </InputHelperMessage>
+          ) : null}
         </div>
 
+        {/* Notes */}
         <div className="mb-4">
-          <Label htmlFor="notes" className="mb-1">
-            Notes
-          </Label>
+          <div className="relative mb-2 flex items-center justify-between">
+            <Label htmlFor="notes" className="">
+              Notes
+            </Label>
+
+            {/* Show/hide Notes field in PDF switch */}
+            <div className="inline-flex items-center gap-2">
+              <Controller
+                name={`notesFieldIsVisible`}
+                control={control}
+                render={({ field: { value, onChange, ...field } }) => (
+                  <Switch
+                    {...field}
+                    id={`notesFieldIsVisible`}
+                    checked={value}
+                    onCheckedChange={onChange}
+                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                  />
+                )}
+              />
+              <CustomTooltip
+                trigger={
+                  <Label htmlFor={`notesFieldIsVisible`}>Show in PDF</Label>
+                }
+                content='Show/Hide the "Notes" Field in the PDF'
+              />
+            </div>
+          </div>
           <Controller
             name="notes"
             control={control}
@@ -946,6 +1675,54 @@ export function InvoiceForm({
           {errors?.notes && (
             <ErrorMessage>{errors?.notes?.message}</ErrorMessage>
           )}
+        </div>
+
+        <div>
+          <div className="relative mt-5 space-y-4">
+            {/* Show/hide Person Authorized to Receive field in PDF switch */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor={`personAuthorizedToReceiveFieldIsVisible`}>
+                Show &quot;Person Authorized to Receive&quot; Signature Field in
+                the PDF
+              </Label>
+
+              <Controller
+                name={`personAuthorizedToReceiveFieldIsVisible`}
+                control={control}
+                render={({ field: { value, onChange, ...field } }) => (
+                  <Switch
+                    {...field}
+                    id={`personAuthorizedToReceiveFieldIsVisible`}
+                    checked={value}
+                    onCheckedChange={onChange}
+                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                  />
+                )}
+              />
+            </div>
+
+            {/* Show/hide Person Authorized to Issue field in PDF switch */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor={`personAuthorizedToIssueFieldIsVisible`}>
+                Show &quot;Person Authorized to Issue&quot; Signature Field in
+                the PDF
+              </Label>
+
+              <Controller
+                name={`personAuthorizedToIssueFieldIsVisible`}
+                control={control}
+                render={({ field: { value, onChange, ...field } }) => (
+                  <Switch
+                    {...field}
+                    id={`personAuthorizedToIssueFieldIsVisible`}
+                    checked={value}
+                    onCheckedChange={onChange}
+                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                  />
+                )}
+              />
+            </div>
+          </div>
         </div>
       </form>
     </>

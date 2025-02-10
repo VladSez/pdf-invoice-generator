@@ -6,41 +6,33 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Free PDF Invoice Generator",
+  title: "Easy Invoice PDF - Free PDF Invoice Generator",
   description:
-    "Generate professional PDF invoices for free. Supports multiple languages, currencies, and customizable templates. Perfect for freelancers and small businesses.",
+    "Create professional PDF invoices instantly with Live Preview. Free and open-source. No signup required. Supports multiple languages and currencies. Perfect for freelancers and small businesses.",
   keywords:
-    "invoice generator, pdf invoice, free invoice generator, business invoice, invoice template, open source, free, pdf, invoice, generator, business, freelancer",
+    "invoice generator, pdf invoice generator, free invoice maker, business invoice template, professional invoice, digital invoice, online invoice generator, invoice software, small business invoice, freelancer invoice, tax invoice, electronic invoice, invoice creation tool, billing software, accounting tools",
   authors: [{ name: "Uladzislau Sazonau" }],
   creator: "Uladzislau Sazonau",
   publisher: "Uladzislau Sazonau",
-  metadataBase: new URL("https://pdf-invoice-generator-one.vercel.app"),
+  metadataBase: new URL("https://easyinvoicepdf.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Free PDF Invoice Generator",
+    title: "Easy Invoice PDF - Free PDF Invoice Generator",
     description:
-      "Generate professional PDF invoices for free. Supports multiple languages, currencies, and customizable templates.",
-    url: "https://pdf-invoice-generator-one.vercel.app",
-    siteName: "PDF Invoice Generator",
+      "Create professional PDF invoices instantly with Live Preview. Free and open-source. No signup required. Supports multiple languages and currencies. Perfect for freelancers and small businesses.",
+    url: "https://easyinvoicepdf.com",
+    siteName: "Easy Invoice PDF - Free PDF Invoice Generator",
     locale: "en_US",
     type: "website",
-    // images: [
-    //   {
-    //     url: "/og-image.png",
-    //     width: 1200,
-    //     height: 630,
-    //     alt: "PDF Invoice Generator Preview",
-    //   },
-    // ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Free PDF Invoice Generator",
+    title: "Easy Invoice PDF - Free PDF Invoice Generator",
     description:
-      "Generate professional PDF invoices for free. Supports multiple languages, currencies, and customizable templates.",
-    // images: ["/og-image.png"],
+      "Create professional PDF invoices instantly with Live Preview. Free and open-source. No signup required. Supports multiple languages and currencies. Perfect for freelancers and small businesses.",
+    creator: "@vlad_sazon",
   },
   robots: {
     index: true,

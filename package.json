@@ -14,6 +14,7 @@
     "@loglib/tracker": "0.8.0",
     "@radix-ui/react-label": "2.1.1",
     "@radix-ui/react-slot": "1.1.1",
+    "@radix-ui/react-switch": "1.1.2",
     "@radix-ui/react-tooltip": "1.1.6",
     "@react-pdf/layout": "4.0.1",
     "@react-pdf/renderer": "4.0.1",

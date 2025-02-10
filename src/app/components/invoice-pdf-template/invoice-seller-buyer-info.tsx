@@ -11,6 +11,12 @@ export function InvoiceSellerBuyerInfo({
   const language = invoiceData.language;
   const t = translations[language];
 
+  const swiftBicFieldIsVisible = invoiceData.seller.swiftBicFieldIsVisible;
+  const sellerVatNoFieldIsVisible = invoiceData.seller.vatNoFieldIsVisible;
+  const buyerVatNoFieldIsVisible = invoiceData.buyer.vatNoFieldIsVisible;
+  const sellerAccountNumberFieldIsVisible =
+    invoiceData.seller.accountNumberFieldIsVisible;
+
   return (
     <View
       style={{
@@ -33,12 +39,14 @@ export function InvoiceSellerBuyerInfo({
           </Text>
 
           <View style={{ marginTop: 2 }}>
-            <Text style={[styles.fontSize7]}>
-              {t.seller.vatNo}:{" "}
-              <Text style={[styles.boldText, styles.fontSize8]}>
-                {invoiceData?.seller.vatNo}
+            {sellerVatNoFieldIsVisible && (
+              <Text style={[styles.fontSize7]}>
+                {t.seller.vatNo}:{" "}
+                <Text style={[styles.boldText, styles.fontSize8]}>
+                  {invoiceData?.seller.vatNo}
+                </Text>
               </Text>
-            </Text>
+            )}
             <Text style={styles.fontSize7}>
               {t.seller.email}:{" "}
               <Text style={[styles.boldText, styles.fontSize8]}>
@@ -49,18 +57,22 @@ export function InvoiceSellerBuyerInfo({
         </View>
 
         <View style={{ marginTop: 10 }}>
-          <Text style={styles.fontSize8}>
-            {t.seller.accountNumber} -{" "}
-            <Text style={[styles.boldText, styles.fontSize8]}>
-              {invoiceData?.seller.accountNumber}
+          {sellerAccountNumberFieldIsVisible && (
+            <Text style={styles.fontSize8}>
+              {t.seller.accountNumber} -{" "}
+              <Text style={[styles.boldText, styles.fontSize8]}>
+                {invoiceData?.seller.accountNumber}
+              </Text>
             </Text>
-          </Text>
-          <Text style={styles.fontSize7}>
-            {t.seller.swiftBic}:{" "}
-            <Text style={[styles.boldText, styles.fontSize8]}>
-              {invoiceData?.seller.swiftBic}
+          )}
+          {swiftBicFieldIsVisible && (
+            <Text style={styles.fontSize8}>
+              {t.seller.swiftBic}:{" "}
+              <Text style={[styles.boldText, styles.fontSize8]}>
+                {invoiceData?.seller.swiftBic}
+              </Text>
             </Text>
-          </Text>
+          )}
         </View>
       </View>
 
@@ -77,12 +89,14 @@ export function InvoiceSellerBuyerInfo({
         </Text>
 
         <View style={{ marginTop: 2 }}>
-          <Text style={styles.fontSize7}>
-            {t.buyer.vatNo}:{" "}
-            <Text style={[styles.boldText, styles.fontSize8]}>
-              {invoiceData?.buyer.vatNo}
+          {buyerVatNoFieldIsVisible && (
+            <Text style={styles.fontSize7}>
+              {t.buyer.vatNo}:{" "}
+              <Text style={[styles.boldText, styles.fontSize8]}>
+                {invoiceData?.buyer.vatNo}
+              </Text>
             </Text>
-          </Text>
+          )}
           <Text style={styles.fontSize7}>
             {t.buyer.email}:{" "}
             <Text style={[styles.boldText, styles.fontSize8]}>

@@ -95,6 +95,7 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 0,
     borderColor: "gray",
   },
+
   tableRow: {
     flexDirection: "row",
     width: "100%",
@@ -122,16 +123,27 @@ export const styles = StyleSheet.create({
     fontWeight: 600,
   },
   // styles for specific column widths for invoice items table
-  colNo: { width: "3%" },
-  colName: { width: "36%" },
-  colGTU: { width: "6%" },
-  colAmount: { width: "7%" },
-  colUnit: { width: "6%" },
-  colNetPrice: { width: "10%" },
-  colVAT: { width: "4%" },
-  colNetAmount: { width: "10%" },
-  colVATAmount: { width: "8%" },
-  colPreTaxAmount: { width: "10%" },
+  // colNo: { width: "3%" },
+  // colName: { width: "36%" },
+  // colGTU: { width: "6%" },
+  // colAmount: { width: "7%" },
+  // colUnit: { width: "6%" },
+  // colNetPrice: { width: "10%" },
+  // colVAT: { width: "4%" },
+  // colNetAmount: { width: "10%" },
+  // colVATAmount: { width: "8%" },
+  // colPreTaxAmount: { width: "10%" },
+
+  colNo: { flex: 0.45 }, // smallest width for numbers
+  colName: { flex: 5 }, // larger width for text
+  colGTU: { flex: 0.9 }, // small width for codes
+  colAmount: { flex: 1.1 }, // medium width for numbers
+  colUnit: { flex: 1 }, // medium width for text
+  colNetPrice: { flex: 1.5 }, // medium-large for prices
+  colVAT: { flex: 0.7 }, // small width for percentages
+  colNetAmount: { flex: 1.5 }, // medium-large for amounts
+  colVATAmount: { flex: 1.5 }, // medium-large for amounts
+  colPreTaxAmount: { flex: 1.5 }, // medium-large for amounts
   signatureSection: {
     flexDirection: "row",
     justifyContent: "center",
@@ -194,6 +206,12 @@ export const InvoicePdfTemplate = ({
 
   const invoiceDocTitle = `https://easyinvoicepdf.com - ${t.invoiceNumber} ${invoiceData.invoiceNumber}`;
 
+  const signatureSectionIsVisible =
+    invoiceData.personAuthorizedToReceiveFieldIsVisible ||
+    invoiceData.personAuthorizedToIssueFieldIsVisible;
+
+  const vatTableSummaryIsVisible = invoiceData.vatTableSummaryIsVisible;
+
   return (
     <Document title={invoiceDocTitle}>
       <Page size="A4" style={styles.page}>
@@ -212,37 +230,49 @@ export const InvoicePdfTemplate = ({
           }}
         >
           <InvoicePaymentInfo invoiceData={invoiceData} />
-          <InvoiceVATSummaryTable
+          {vatTableSummaryIsVisible && (
+            <InvoiceVATSummaryTable
+              invoiceData={invoiceData}
+              formattedInvoiceTotal={formattedInvoiceTotal}
+            />
+          )}
+        </View>
+
+        <div style={{ marginTop: vatTableSummaryIsVisible ? 0 : 15 }}>
+          <InvoicePaymentTotals
             invoiceData={invoiceData}
             formattedInvoiceTotal={formattedInvoiceTotal}
           />
-        </View>
-
-        <InvoicePaymentTotals
-          invoiceData={invoiceData}
-          formattedInvoiceTotal={formattedInvoiceTotal}
-        />
+        </div>
 
         {/* Signature section */}
-        <View style={styles.signatureSection}>
-          <View style={styles.signatureColumn}>
-            <View style={styles.signatureLine} />
-            <Text style={styles.signatureText}>
-              {t.personAuthorizedToReceive}
-            </Text>
+        {signatureSectionIsVisible && (
+          <View style={styles.signatureSection}>
+            {invoiceData.personAuthorizedToReceiveFieldIsVisible && (
+              <View style={styles.signatureColumn}>
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureText}>
+                  {t.personAuthorizedToReceive}
+                </Text>
+              </View>
+            )}
+            {invoiceData.personAuthorizedToIssueFieldIsVisible && (
+              <View style={styles.signatureColumn}>
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureText}>
+                  {t.personAuthorizedToIssue}
+                </Text>
+              </View>
+            )}
           </View>
-          <View style={styles.signatureColumn}>
-            <View style={styles.signatureLine} />
-            <Text style={styles.signatureText}>
-              {t.personAuthorizedToIssue}
-            </Text>
-          </View>
-        </View>
+        )}
 
         {/* Notes */}
-        <View style={{ marginTop: 10 }}>
-          <Text style={styles.fontSize8}>{invoiceData?.notes}</Text>
-        </View>
+        {invoiceData.notesFieldIsVisible && (
+          <View style={{ marginTop: 10 }}>
+            <Text style={styles.fontSize8}>{invoiceData?.notes}</Text>
+          </View>
+        )}
 
         {/* Footer  */}
         <View style={styles.footer}>

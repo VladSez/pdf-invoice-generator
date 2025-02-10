@@ -2,6 +2,7 @@
 
 import {
   invoiceSchema,
+  SUPPORTED_DATE_FORMATS,
   SUPPORTED_LANGUAGES,
   type InvoiceData,
 } from "@/app/schema";
@@ -70,55 +71,90 @@ const paymentDue = dayjs(today).add(14, "days").format("YYYY-MM-DD");
 
 const EUR = SUPPORTED_CURRENCIES[0];
 const EN = SUPPORTED_LANGUAGES[0];
+const DEFAULT_DATE_FORMAT = SUPPORTED_DATE_FORMATS[0];
 
 const initialInvoiceData = {
   language: EN,
   currency: EUR,
   invoiceNumber: `1/${invoiceCurrentMonthAndYear}`,
+
   dateOfIssue: today,
   dateOfService: lastDayOfMonth,
+  dateFormat: DEFAULT_DATE_FORMAT,
+
   invoiceType: "Reverse Charge",
   seller: {
     name: "Seller name",
     address: "Seller address",
+
     vatNo: "Seller vat number",
+    vatNoFieldIsVisible: true,
+
     email: "seller@email.com",
     accountNumber: "Seller account number",
+
     swiftBic: "Seller swift bic",
+    swiftBicFieldIsVisible: true,
   },
   buyer: {
     name: "Buyer name",
     address: "Buyer address",
     vatNo: "Buyer vat number",
+    vatNoFieldIsVisible: true,
     email: "buyer@email.com",
   },
   items: [
     {
+      invoiceItemNumberIsVisible: true,
+
       name: "Item name",
+      nameFieldIsVisible: true,
+
+      typeOfGTU: "",
+      typeOfGTUFieldIsVisible: true,
+
       amount: 1,
+      amountFieldIsVisible: true,
+
       unit: "service",
+      unitFieldIsVisible: true,
+
       netPrice: 0,
+      netPriceFieldIsVisible: true,
+
       vat: "NP",
+      vatFieldIsVisible: true,
+
       netAmount: 0,
+      netAmountFieldIsVisible: true,
+
       vatAmount: 0.0,
+      vatAmountFieldIsVisible: true,
+
       preTaxAmount: 0,
+      preTaxAmountFieldIsVisible: true,
     },
   ],
   total: 0,
   paymentMethod: "wire transfer",
   paymentDue: paymentDue,
   notes: "Reverse charge",
+
+  vatTableSummaryIsVisible: true,
+  paymentMethodFieldIsVisible: true,
+  personAuthorizedToReceiveFieldIsVisible: true,
+  personAuthorizedToIssueFieldIsVisible: true,
 } as const satisfies InvoiceData;
 
 export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+
   const [invoiceDataState, setInvoiceDataState] = useState<InvoiceData | null>(
     null
   );
-
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   // Initialize data from URL or localStorage on mount
   useEffect(() => {
@@ -265,7 +301,7 @@ export default function Home() {
         <div className="mb-4 w-full max-w-7xl bg-white p-3 shadow-lg sm:mb-0 sm:rounded-lg sm:p-6">
           <div className="flex w-full flex-row flex-wrap items-center justify-between lg:flex-nowrap">
             <h1 className="mb-6 mt-6 w-full text-balance text-center text-xl font-bold sm:mb-4 sm:mt-0 sm:text-2xl lg:text-left">
-              Free Invoice PDF Generator
+              Free Invoice PDF Generator with live preview
             </h1>
 
             <div className="mb-1 flex w-full flex-wrap justify-center gap-3 lg:flex-nowrap lg:justify-end">
