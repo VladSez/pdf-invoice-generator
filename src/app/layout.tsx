@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 export const metadata: Metadata = {
   title: "Free PDF Invoice Generator with Live Preview",
   description:
-    "Generate professional PDF invoices instantly with Live Preview. Free and open-source. No signup required. Supports multiple languages and currencies. Ideal for freelancers and small businesses.",
+    "Generate professional PDF invoices instantly with Live Preview. Free and open-source. No signup required.",
   keywords:
     "invoice generator, pdf invoice generator, free invoice maker, business invoice template, professional invoice, digital invoice, online invoice generator, invoice software, small business invoice, freelancer invoice, tax invoice, electronic invoice, invoice creation tool, billing software, accounting tools,",
   authors: [{ name: "Uladzislau Sazonau" }],
@@ -21,9 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Free PDF Invoice Generator with Live Preview",
     description:
-      "Generate professional PDF invoices instantly with Live Preview. Free and open-source. No signup required. Supports multiple languages and currencies. Ideal for freelancers and small businesses.",
-    url: "https://easyinvoicepdf.com",
-    siteName: "Free PDF Invoice Generator with Live Preview",
+      "Generate professional PDF invoices instantly with Live Preview. Free and open-source. No signup required.",
     locale: "en_US",
     type: "website",
   },
@@ -31,15 +29,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Free PDF Invoice Generator with Live Preview",
     description:
-      "Generate professional PDF invoices instantly with Live Preview. Free and open-source. No signup required. Supports multiple languages and currencies. Ideal for freelancers and small businesses.",
+      "Generate professional PDF invoices instantly with Live Preview. Free and open-source. No signup required.",
     creator: "@vlad_sazon",
   },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
     googleBot: {
-      index: true,
-      follow: true,
+      index: false,
+      follow: false,
     },
   },
 };
