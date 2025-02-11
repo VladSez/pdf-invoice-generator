@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { CustomTooltip } from "@/components/ui/tooltip";
-import { LOADING_TIMEOUT, PDF_DATA_FORM_ID } from "./invoice-form";
+import {
+  LOADING_BUTTON_TEXT,
+  LOADING_TIMEOUT,
+  PDF_DATA_FORM_ID,
+} from "./invoice-form";
 import { InvoicePdfTemplate } from "./invoice-pdf-template";
 import { usePDF } from "@react-pdf/renderer";
 import type { InvoiceData } from "../schema";
@@ -51,7 +55,7 @@ export function RegenerateInvoiceButton({
           {isLoading ? (
             <span className="inline-flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span className="animate-pulse">Loading document...</span>
+              <span className="animate-pulse">{LOADING_BUTTON_TEXT}</span>
             </span>
           ) : (
             "Regenerate invoice"

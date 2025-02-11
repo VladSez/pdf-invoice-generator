@@ -28,6 +28,7 @@ import { z } from "zod";
 export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
 export const LOADING_TIMEOUT = 500;
+export const LOADING_BUTTON_TEXT = "Generating Document...";
 
 const checkIfDateOnInvoiceIsInCurrentMonth = (date: string) => {
   const today = dayjs();
@@ -225,7 +226,7 @@ export function InvoiceForm({
       }
     },
     // delay in ms
-    400
+    LOADING_TIMEOUT
   );
 
   // subscribe to form changes to regenerate pdf on every input change
