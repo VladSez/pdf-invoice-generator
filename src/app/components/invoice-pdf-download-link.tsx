@@ -8,6 +8,7 @@ import { loglib } from "@loglib/tracker";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { LOADING_BUTTON_TEXT, LOADING_TIMEOUT } from "./invoice-form";
+import { toast } from "sonner";
 
 export function InvoicePDFDownloadLink({
   invoiceData,
@@ -18,11 +19,15 @@ export function InvoicePDFDownloadLink({
     invoiceData.language
   }-${invoiceData.invoiceNumber.replace("/", "-")}.pdf`;
 
-  const [{ loading: pdfLoading, url }] = usePDF({
-    document: <InvoicePdfTemplate invoiceData={invoiceData} />,
-  });
+  const [{ loading: pdfLoading, url, error }, updatePdfInstance] = usePDF();
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // https://github.com/diegomura/react-pdf/pull/2247/files
+  // allow the pdf to be updated correctly when the invoice data changes
+  useEffect(() => {
+    updatePdfInstance(<InvoicePdfTemplate invoiceData={invoiceData} />);
+  }, [invoiceData, updatePdfInstance]);
 
   useEffect(() => {
     if (pdfLoading) {
@@ -35,6 +40,12 @@ export function InvoicePDFDownloadLink({
       return () => clearTimeout(timer);
     }
   }, [pdfLoading]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error("Error generating document link");
+    }
+  }, [error]);
 
   return (
     <>

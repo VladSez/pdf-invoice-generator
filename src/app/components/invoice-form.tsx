@@ -142,6 +142,11 @@ export function InvoiceForm({
     dayjs(dateOfIssue)
   );
 
+  // payment due date is 14 days after the date of issue or the same day
+  const isPaymentDue14DaysFromDateOfIssue =
+    dayjs(paymentDue).isAfter(dayjs(dateOfIssue).add(14, "days")) ||
+    dayjs(paymentDue).isSame(dayjs(dateOfIssue).add(14, "days"));
+
   const extractInvoiceMonthAndYear = invoiceNumber?.split("/")?.[1];
 
   const isInvoiceNumberInCurrentMonth =
@@ -1661,6 +1666,23 @@ export function InvoiceForm({
                 {dayjs(dateOfIssue).add(14, "days").format("DD/MM/YYYY")})
               </ButtonHelper>
             </InputHelperMessage>
+          ) : null}
+          {/* If there are no errors and the payment due date is not before the date of issue and the payment due date is not 14 days after the date of issue, show the button to set the payment due date to 14 days after the date of issue (probably a bit better UX) */}
+          {!errors.paymentDue &&
+          !isPaymentDueBeforeDateOfIssue &&
+          !isPaymentDue14DaysFromDateOfIssue ? (
+            <ButtonHelper
+              onClick={() => {
+                const newPaymentDue = dayjs(dateOfIssue)
+                  .add(14, "days")
+                  .format("YYYY-MM-DD");
+
+                setValue("paymentDue", newPaymentDue);
+              }}
+            >
+              Click to set payment due date 14 days after the date of issue (
+              {dayjs(dateOfIssue).add(14, "days").format("DD/MM/YYYY")})
+            </ButtonHelper>
           ) : null}
         </div>
 
