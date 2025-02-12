@@ -24,6 +24,7 @@ export function InvoicePDFDownloadLink({
   const [isLoading, setIsLoading] = useState(false);
 
   // https://github.com/diegomura/react-pdf/pull/2247/files
+  // allow the pdf to be updated correctly when the invoice data changes
   useEffect(() => {
     updatePdfInstance(<InvoicePdfTemplate invoiceData={invoiceData} />);
   }, [invoiceData, updatePdfInstance]);
