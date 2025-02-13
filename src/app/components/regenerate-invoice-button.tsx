@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CustomTooltip } from "@/components/ui/tooltip";
 import {
   LOADING_BUTTON_TEXT,
-  LOADING_TIMEOUT,
+  LOADING_BUTTON_TIMEOUT,
   PDF_DATA_FORM_ID,
 } from "./invoice-form";
 import { InvoicePdfTemplate } from "./invoice-pdf-template";
@@ -31,7 +31,7 @@ export function RegenerateInvoiceButton({
       // When PDF loading completes, wait for 0.5 second before hiding the loader
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, LOADING_TIMEOUT);
+      }, LOADING_BUTTON_TIMEOUT);
       return () => clearTimeout(timer);
     }
   }, [pdfLoading]);

@@ -11,6 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputHelperMessage } from "@/components/ui/input-helper-message";
 import { Label } from "@/components/ui/label";
+import {
+  CURRENCY_SYMBOLS,
+  MoneyInput,
+  ReadOnlyMoneyInput,
+} from "@/components/ui/money-input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,7 +32,8 @@ import { z } from "zod";
 
 export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
-export const LOADING_TIMEOUT = 500;
+export const DEBOUNCE_TIMEOUT = 500;
+export const LOADING_BUTTON_TIMEOUT = 400;
 export const LOADING_BUTTON_TEXT = "Generating Document...";
 
 const checkIfDateOnInvoiceIsInCurrentMonth = (date: string) => {
@@ -95,7 +101,10 @@ const ButtonHelper = ({
     <Button
       _variant="link"
       _size="sm"
-      className={cn("h-5 text-pretty p-0 text-left underline", className)}
+      className={cn(
+        "h-5 max-w-full whitespace-normal text-pretty p-0 text-left underline",
+        className
+      )}
       {...props}
     >
       {children}
@@ -230,8 +239,8 @@ export function InvoiceForm({
         }
       }
     },
-    // delay in ms
-    LOADING_TIMEOUT
+    // debounce delay in ms
+    DEBOUNCE_TIMEOUT
   );
 
   // subscribe to form changes to regenerate pdf on every input change
@@ -304,19 +313,25 @@ export function InvoiceForm({
           <Controller
             name="currency"
             control={control}
-            render={({ field }) => (
-              <SelectNative {...field} id="currency" className="block">
-                {SUPPORTED_CURRENCIES.map((currency) => (
-                  <option
-                    key={currency}
-                    value={currency}
-                    defaultValue={SUPPORTED_CURRENCIES[0]}
-                  >
-                    {currency}
-                  </option>
-                ))}
-              </SelectNative>
-            )}
+            render={({ field }) => {
+              return (
+                <SelectNative {...field} id="currency" className="block">
+                  {SUPPORTED_CURRENCIES.map((currency) => {
+                    const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
+
+                    return (
+                      <option
+                        key={currency}
+                        value={currency}
+                        defaultValue={SUPPORTED_CURRENCIES[0]}
+                      >
+                        {currency} {currencySymbol}
+                      </option>
+                    );
+                  })}
+                </SelectNative>
+              );
+            }}
           />
 
           {errors.currency ? (
@@ -1176,7 +1191,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemNetPrice${index}`} className="">
-                        Net Price in {currency}
+                        Net Price
                       </Label>
 
                       {/* Show/hide Net Price field in PDF switch */}
@@ -1212,20 +1227,39 @@ export function InvoiceForm({
                     </div>
 
                     {/* Net price input */}
-                    <Controller
-                      name={`items.${index}.netPrice`}
-                      control={control}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id={`itemNetPrice${index}`}
-                          type="number"
-                          step="1"
-                          min="0"
-                          className=""
-                        />
-                      )}
-                    />
+                    <div className="flex items-center gap-2">
+                      <Controller
+                        name={`items.${index}.netPrice`}
+                        control={control}
+                        render={({ field }) => (
+                          <div className="flex w-full flex-col">
+                            <MoneyInput
+                              {...field}
+                              id={`itemNetPrice${index}`}
+                              currency={currency}
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              className="w-full"
+                            />
+                            {!errors.items?.[index]?.netPrice && (
+                              <InputHelperMessage>
+                                Preview:{" "}
+                                {Number(field.value || 0).toLocaleString(
+                                  "en-US",
+                                  {
+                                    style: "currency",
+                                    currency: currency,
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }
+                                )}
+                              </InputHelperMessage>
+                            )}
+                          </div>
+                        )}
+                      />
+                    </div>
                     {errors.items?.[index]?.netPrice && (
                       <ErrorMessage>
                         {errors.items[index].netPrice.message}
@@ -1299,7 +1333,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemNetAmount${index}`} className="">
-                        Net Amount in {currency}
+                        Net Amount
                       </Label>
 
                       {/* Show/hide Net Amount field in PDF switch */}
@@ -1340,16 +1374,14 @@ export function InvoiceForm({
                       control={control}
                       render={({ field }) => {
                         return (
-                          <Input
+                          <ReadOnlyMoneyInput
                             {...field}
                             id={`itemNetAmount${index}`}
+                            currency={currency}
                             value={field.value.toLocaleString("en-US", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
                             })}
-                            type="text"
-                            readOnly
-                            className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                           />
                         );
                       }}
@@ -1370,7 +1402,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemVatAmount${index}`} className="">
-                        VAT Amount in {currency}
+                        VAT Amount
                       </Label>
 
                       {/* Show/hide VAT Amount field in PDF switch */}
@@ -1410,16 +1442,14 @@ export function InvoiceForm({
                       name={`items.${index}.vatAmount`}
                       control={control}
                       render={({ field }) => (
-                        <Input
+                        <ReadOnlyMoneyInput
                           {...field}
                           id={`itemVatAmount${index}`}
+                          currency={currency}
                           value={field.value.toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
-                          type="text"
-                          readOnly
-                          className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -1439,7 +1469,7 @@ export function InvoiceForm({
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label htmlFor={`itemPreTaxAmount${index}`} className="">
-                        Pre-tax Amount in {currency}
+                        Pre-tax Amount
                       </Label>
 
                       {/* Show/hide Pre-tax Amount field in PDF switch */}
@@ -1479,16 +1509,14 @@ export function InvoiceForm({
                       name={`items.${index}.preTaxAmount`}
                       control={control}
                       render={({ field }) => (
-                        <Input
+                        <ReadOnlyMoneyInput
                           {...field}
                           id={`itemPreTaxAmount${index}`}
+                          currency={currency}
                           value={field.value.toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
-                          type="text"
-                          readOnly
-                          className="block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50"
                         />
                       )}
                     />
@@ -1547,26 +1575,21 @@ export function InvoiceForm({
         <div className="">
           <div className="mt-5" />
           <Label htmlFor="total" className="mb-1">
-            Total in {currency}
+            Total
           </Label>
           <div className="relative mt-1 rounded-md shadow-sm">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <span className="text-gray-500 sm:text-sm">{currency}</span>
-            </div>
             <Controller
               name="total"
               control={control}
               render={({ field }) => (
-                <Input
+                <ReadOnlyMoneyInput
                   {...field}
-                  readOnly
                   id="total"
-                  type="text"
+                  currency={currency}
                   value={field.value.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
-                  className="block w-full cursor-not-allowed rounded-md border-gray-300 bg-gray-100 pl-12 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 sm:text-sm"
                 />
               )}
             />
@@ -1672,6 +1695,7 @@ export function InvoiceForm({
           !isPaymentDueBeforeDateOfIssue &&
           !isPaymentDue14DaysFromDateOfIssue ? (
             <ButtonHelper
+              className="whitespace-normal"
               onClick={() => {
                 const newPaymentDue = dayjs(dateOfIssue)
                   .add(14, "days")
