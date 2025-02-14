@@ -15,19 +15,22 @@ const MoneyInput = React.forwardRef<
   React.ComponentProps<"input"> & { currency: InvoiceData["currency"] }
 >(({ currency, ...props }, ref) => {
   const shownCurrencyText = currency || SUPPORTED_CURRENCIES[0];
-  const currencySymbol = CURRENCY_SYMBOLS[shownCurrencyText] || "€";
+  const currencySymbol = CURRENCY_SYMBOLS[shownCurrencyText] || null;
 
   return (
     <div>
       <div className="relative flex rounded-lg shadow-sm shadow-black/5">
-        <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm">
-          {currencySymbol}
-        </span>
+        {currencySymbol ? (
+          <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm">
+            {currencySymbol}
+          </span>
+        ) : null}
         <Input
           {...props}
           ref={ref}
           className={cn(
             "-me-px rounded-e-none ps-6 shadow-none",
+            currencySymbol ? "ps-6" : "ps-3",
             props.className
           )}
           placeholder="0.00"
@@ -46,19 +49,23 @@ const ReadOnlyMoneyInput = React.forwardRef<
   React.ComponentProps<"input"> & { currency: InvoiceData["currency"] }
 >(({ currency, ...props }, ref) => {
   const shownCurrencyText = currency || SUPPORTED_CURRENCIES[0];
-  const currencySymbol = CURRENCY_SYMBOLS[shownCurrencyText] || "€";
+  const currencySymbol = CURRENCY_SYMBOLS[shownCurrencyText] || null;
 
   return (
     <div>
       <div className="relative flex rounded-lg shadow-sm shadow-black/5">
-        <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm">
-          {currencySymbol}
-        </span>
+        {currencySymbol ? (
+          <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-sm">
+            {currencySymbol}
+          </span>
+        ) : null}
         <Input
           {...props}
           ref={ref}
           className={cn(
-            "-me-px block w-full cursor-not-allowed rounded-md rounded-e-none border border-gray-300 bg-gray-100 px-3 py-2 ps-6 focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50",
+            "-me-px block w-full cursor-not-allowed rounded-md rounded-e-none border border-gray-300 bg-gray-100 px-3 py-2 ps-6",
+            currencySymbol ? "ps-6" : "ps-3",
+            "focus-visible:border-indigo-500 focus-visible:ring focus-visible:ring-indigo-200 focus-visible:ring-opacity-50",
             props.className
           )}
           placeholder="0.00"

@@ -317,7 +317,7 @@ export function InvoiceForm({
               return (
                 <SelectNative {...field} id="currency" className="block">
                   {SUPPORTED_CURRENCIES.map((currency) => {
-                    const currencySymbol = CURRENCY_SYMBOLS[currency] || "€";
+                    const currencySymbol = CURRENCY_SYMBOLS[currency] || null;
 
                     return (
                       <option
