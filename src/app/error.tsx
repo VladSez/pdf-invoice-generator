@@ -1,0 +1,66 @@
+"use client"; // Error boundaries must be Client Components
+
+import { Button } from "@/components/ui/button";
+import { CircleAlert } from "lucide-react";
+import { useEffect } from "react";
+import { toast } from "sonner";
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    // Log the error to an error reporting service
+    console.error(error);
+
+    toast.error(
+      "Something went wrong! Please try to refresh the page or contact support.",
+      {
+        closeButton: true,
+        richColors: true,
+      }
+    );
+  }, [error]);
+
+  return (
+    <div className="flex h-dvh flex-col items-center justify-center gap-4">
+      <div className="flex flex-col items-center justify-center gap-4">
+        <ErrorMessage>
+          Something went wrong. Please try to refresh the page or contact
+          support via this{" "}
+          <a href="mailto:vladsazon27@gmail.com" className="underline">
+            link
+          </a>
+        </ErrorMessage>
+        <Button
+          onClick={
+            // Attempt to recover by trying to re-render the segment
+            () => reset()
+          }
+          _variant="outline"
+        >
+          Try again
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ErrorMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-red-500/50 px-4 py-3 text-red-600">
+      <p className="text-sm">
+        <CircleAlert
+          className="-mt-0.5 me-3 inline-flex opacity-60"
+          size={16}
+          strokeWidth={2}
+          aria-hidden="true"
+        />
+        {children}
+      </p>
+    </div>
+  );
+}

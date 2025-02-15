@@ -57,7 +57,8 @@ export default function RootLayout({
             webVitals: true,
           }}
         />
-        <Toaster />
+        {/* https://sonner.emilkowal.ski/ */}
+        <Toaster visibleToasts={1} />
       </body>
     </html>
   );
