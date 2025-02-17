@@ -18,8 +18,11 @@ Naming Conventions
 
 TypeScript Usage
 - Use TypeScript for all code; prefer interfaces over types.
-- Avoid enums; use maps instead.
+- Avoid enums; use objects with `as const` instead.
 - Use functional components with TypeScript interfaces.
+
+React Usage
+- Prefer Conditional (ternary) operator (? :) over Logical AND operator (&&)
 
 Syntax and Formatting
 - Use the "function" keyword for pure functions.

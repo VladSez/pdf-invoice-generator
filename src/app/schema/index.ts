@@ -86,19 +86,10 @@ export const invoiceItemSchema = z
 
 export type InvoiceItemData = z.infer<typeof invoiceItemSchema>;
 
-export const invoiceSchema = z.object({
-  language: z.enum(SUPPORTED_LANGUAGES).default("en"),
-  dateFormat: z.enum(SUPPORTED_DATE_FORMATS).default("YYYY-MM-DD"),
-  currency: z.enum(SUPPORTED_CURRENCIES).default("EUR"),
+export const sellerSchema = z
+  .object({
+    id: z.string().optional(),
 
-  invoiceNumber: z.string().min(1, "Invoice number is required").trim(),
-  dateOfIssue: z.string().min(1, "Date of issue is required").trim(),
-  dateOfService: z.string().min(1, "Date of service is required").trim(),
-
-  invoiceType: z.string().trim().optional(),
-  invoiceTypeFieldIsVisible: z.boolean().default(true),
-
-  seller: z.object({
     name: z.string().min(1, "Seller name is required").trim(),
     address: z.string().min(1, "Seller address is required").trim(),
 
@@ -112,8 +103,15 @@ export const invoiceSchema = z.object({
 
     swiftBic: z.string().trim().optional(),
     swiftBicFieldIsVisible: z.boolean().default(true),
-  }),
-  buyer: z.object({
+  })
+  .strict();
+
+export type SellerData = z.infer<typeof sellerSchema>;
+
+export const buyerSchema = z
+  .object({
+    id: z.string().optional(),
+
     name: z.string().min(1, "Buyer name is required").trim(),
     address: z.string().min(1, "Buyer address is required").trim(),
 
@@ -121,7 +119,25 @@ export const invoiceSchema = z.object({
     vatNoFieldIsVisible: z.boolean().default(true),
 
     email: z.string().email("Invalid email address").trim(),
-  }),
+  })
+  .strict();
+
+export type BuyerData = z.infer<typeof buyerSchema>;
+
+export const invoiceSchema = z.object({
+  language: z.enum(SUPPORTED_LANGUAGES).default("en"),
+  dateFormat: z.enum(SUPPORTED_DATE_FORMATS).default("YYYY-MM-DD"),
+  currency: z.enum(SUPPORTED_CURRENCIES).default("EUR"),
+
+  invoiceNumber: z.string().min(1, "Invoice number is required").trim(),
+  dateOfIssue: z.string().min(1, "Date of issue is required").trim(),
+  dateOfService: z.string().min(1, "Date of service is required").trim(),
+
+  invoiceType: z.string().trim().optional(),
+  invoiceTypeFieldIsVisible: z.boolean().default(true),
+
+  seller: sellerSchema,
+  buyer: buyerSchema,
 
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
   total: z.coerce.number().nonnegative("Total must be non-negative"),

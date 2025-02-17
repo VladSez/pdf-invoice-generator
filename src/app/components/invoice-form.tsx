@@ -7,7 +7,8 @@ import {
   type InvoiceData,
   type InvoiceItemData,
 } from "@/app/schema";
-import { Button } from "@/components/ui/button";
+import { SellerManagement } from "@/components/seller-management";
+import { ButtonHelper } from "@/components/ui/button-helper";
 import { Input } from "@/components/ui/input";
 import { InputHelperMessage } from "@/components/ui/input-helper-message";
 import { Label } from "@/components/ui/label";
@@ -20,7 +21,6 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomTooltip } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loglib } from "@loglib/tracker";
 import dayjs from "dayjs";
@@ -30,7 +30,7 @@ import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
 
-export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
+export const PDF_DATA_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_DATA";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
 export const DEBOUNCE_TIMEOUT = 500;
 export const LOADING_BUTTON_TIMEOUT = 400;
@@ -90,28 +90,6 @@ const AlertIcon = () => {
   return <AlertTriangle className="mr-1 inline-block h-3 w-3 text-amber-500" />;
 };
 
-const ButtonHelper = ({
-  children,
-  className,
-  ...props
-}: { children: React.ReactNode; className?: string } & React.ComponentProps<
-  typeof Button
->) => {
-  return (
-    <Button
-      _variant="link"
-      _size="sm"
-      className={cn(
-        "h-5 max-w-full whitespace-normal text-pretty p-0 text-left underline",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </Button>
-  );
-};
-
 interface InvoiceFormProps {
   invoiceData: InvoiceData;
   onInvoiceDataChange: (updatedData: InvoiceData) => void;
@@ -165,8 +143,6 @@ export function InvoiceForm({
     control,
     name: "items",
   });
-
-  // const sellerSelectId = useId();
 
   // calculate totals and other values when invoice items change
   useEffect(() => {
@@ -546,37 +522,12 @@ export function InvoiceForm({
         <fieldset className="rounded-lg border p-4 shadow">
           <Legend>Seller Information</Legend>
 
-          {/* TODO: Will be done later */
-          /*
+          {/* Seller Select */}
           <div className="relative bottom-3 flex items-end justify-end gap-2">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1">
-                  <Label htmlFor={sellerSelectId}>Select Seller</Label>
-                  <CustomTooltip
-                    trigger={<Info className="h-3 w-3" />}
-                    content="You can save multiple sellers to use them later"
-                  />
-                </div>
-                <SelectNative
-                  id={sellerSelectId}
-                  className="block h-8 text-[12px] lg:text-[12px]"
-                >
-                  {/* TODO: fetch sellers from local storage */
-          /*}
-                  <option value="1">Seller 1</option>
-                  <option value="2">Seller 2</option>
-                  <option value="3">Seller 3</option>
-                </SelectNative>
-              </div>
+            <SellerManagement setValue={setValue} invoiceData={invoiceData} />
+          </div>
 
-              {/* TODO: add new seller modal + form and save to local storage */
-          /*}
-              <Button _variant="outline" _size="sm" className="">
-                New Seller
-                <Plus className="ml-1 h-3 w-3" />
-              </Button>
-            </div>
-          </> */}
+          {/* Seller Information Form */}
           <div className="space-y-4">
             <div>
               <Label htmlFor="sellerName" className="mb-1">
