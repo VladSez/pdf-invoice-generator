@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  DEFAULT_SELLER_DATA,
   invoiceSchema,
   SUPPORTED_CURRENCIES,
   SUPPORTED_DATE_FORMATS,
@@ -67,21 +68,7 @@ const initialInvoiceData = {
   invoiceType: "Reverse Charge",
   invoiceTypeFieldIsVisible: true,
 
-  seller: {
-    name: "Seller name",
-    address: "Seller address",
-
-    vatNo: "Seller vat number",
-    vatNoFieldIsVisible: true,
-
-    email: "seller@email.com",
-
-    accountNumber: "Seller account number",
-    accountNumberFieldIsVisible: true,
-
-    swiftBic: "Seller swift bic",
-    swiftBicFieldIsVisible: true,
-  },
+  seller: DEFAULT_SELLER_DATA,
   buyer: {
     name: "Buyer name",
     address: "Buyer address",

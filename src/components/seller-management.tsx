@@ -18,9 +18,15 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import type { UseFormSetValue } from "react-hook-form";
-import { sellerSchema, type InvoiceData, type SellerData } from "@/app/schema";
+import {
+  DEFAULT_SELLER_DATA,
+  sellerSchema,
+  type InvoiceData,
+  type SellerData,
+} from "@/app/schema";
 import { z } from "zod";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const SELLERS_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_SELLERS";
 
@@ -134,17 +140,7 @@ export function SellerManagement({
     } else {
       // Clear the seller from the form if the user selects the empty option
       setSelectedSellerIndex("");
-      setValue("seller", {
-        name: "",
-        address: "",
-        vatNo: "",
-        email: "",
-        accountNumber: "",
-        swiftBic: "",
-        vatNoFieldIsVisible: true,
-        accountNumberFieldIsVisible: true,
-        swiftBicFieldIsVisible: true,
-      });
+      setValue("seller", DEFAULT_SELLER_DATA);
     }
   };
 
@@ -162,17 +158,7 @@ export function SellerManagement({
     });
     setSelectedSellerIndex("");
     // Clear the seller from the form if it was selected
-    setValue("seller", {
-      name: "",
-      address: "",
-      vatNo: "",
-      email: "",
-      accountNumber: "",
-      swiftBic: "",
-      vatNoFieldIsVisible: true,
-      accountNumberFieldIsVisible: true,
-      swiftBicFieldIsVisible: true,
-    });
+    setValue("seller", DEFAULT_SELLER_DATA);
 
     setIsDeleteDialogOpen(false);
 
@@ -194,19 +180,19 @@ export function SellerManagement({
               <Label htmlFor={sellerSelectId} className="text-[12px]">
                 Select Seller
               </Label>
-              {/* <CustomTooltip
-              trigger={<Info className="h-3 w-3" />}
-              content="You can save multiple sellers to use them later"
-            /> */}
             </div>
             <div className="flex gap-2">
               <SelectNative
                 id={sellerSelectId}
-                className="block h-8 text-[12px] lg:text-[12px]"
+                className={cn(
+                  "block h-8 max-w-[200px] text-[12px] lg:text-[12px]",
+                  !selectedSellerIndex && "italic text-gray-700"
+                )}
                 onChange={handleSellerChange}
                 value={selectedSellerIndex}
+                title={activeSeller?.name}
               >
-                <option value="">Choose a seller (default)</option>
+                <option value="">No seller selected (default)</option>
                 {sellers.map((seller) => (
                   <option key={seller.id} value={seller.id}>
                     {seller.name}

@@ -16,6 +16,22 @@ export const SUPPORTED_DATE_FORMATS = [
   "YYYY.MM.DD", // 2024.03.20
 ] as const;
 
+export const DEFAULT_SELLER_DATA = {
+  name: "Seller name",
+  address: "Seller address",
+
+  vatNo: "Seller vat number",
+  vatNoFieldIsVisible: true,
+
+  email: "seller@email.com",
+
+  accountNumber: "Seller account number",
+  accountNumberFieldIsVisible: true,
+
+  swiftBic: "Seller swift bic",
+  swiftBicFieldIsVisible: true,
+} as const satisfies SellerData;
+
 export type SupportedDateFormat = (typeof SUPPORTED_DATE_FORMATS)[number];
 
 export const invoiceItemSchema = z
