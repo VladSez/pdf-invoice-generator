@@ -15,6 +15,8 @@
   "dependencies": {
     "@hookform/resolvers": "3.9.0",
     "@loglib/tracker": "0.8.0",
+    "@radix-ui/react-alert-dialog": "1.1.6",
+    "@radix-ui/react-dialog": "1.1.6",
     "@radix-ui/react-label": "2.1.2",
     "@radix-ui/react-slot": "1.1.2",
     "@radix-ui/react-switch": "1.1.3",

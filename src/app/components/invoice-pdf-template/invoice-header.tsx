@@ -31,7 +31,9 @@ export function InvoiceHeader({ invoiceData }: { invoiceData: InvoiceData }) {
         </Text>
 
         {invoiceData?.invoiceType && invoiceData.invoiceTypeFieldIsVisible && (
-          <Text style={[styles.fontBold, styles.fontSize8]}>
+          <Text
+            style={[styles.fontBold, styles.fontSize8, { maxWidth: "250px" }]}
+          >
             {invoiceData?.invoiceType}
           </Text>
         )}

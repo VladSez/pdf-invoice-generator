@@ -218,12 +218,17 @@ export const InvoicePdfTemplate = ({
             justifyContent: "space-between",
           }}
         >
-          <InvoicePaymentInfo invoiceData={invoiceData} />
+          <View style={{ width: "50%" }}>
+            <InvoicePaymentInfo invoiceData={invoiceData} />
+          </View>
+
           {vatTableSummaryIsVisible && (
-            <InvoiceVATSummaryTable
-              invoiceData={invoiceData}
-              formattedInvoiceTotal={formattedInvoiceTotal}
-            />
+            <View style={{ width: "50%" }}>
+              <InvoiceVATSummaryTable
+                invoiceData={invoiceData}
+                formattedInvoiceTotal={formattedInvoiceTotal}
+              />
+            </View>
           )}
         </View>
 

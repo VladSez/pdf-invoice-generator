@@ -7,7 +7,8 @@ import {
   type InvoiceData,
   type InvoiceItemData,
 } from "@/app/schema";
-import { Button } from "@/components/ui/button";
+import { SellerManagement } from "@/components/seller-management";
+import { ButtonHelper } from "@/components/ui/button-helper";
 import { Input } from "@/components/ui/input";
 import { InputHelperMessage } from "@/components/ui/input-helper-message";
 import { Label } from "@/components/ui/label";
@@ -20,17 +21,18 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomTooltip } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { getAmountInWords, getNumberFractionalPart } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loglib } from "@loglib/tracker";
 import dayjs from "dayjs";
 import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import React, { useCallback, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
 
-export const PDF_DATA_LOCAL_STORAGE_KEY = "invoicePdfData";
+export const PDF_DATA_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_DATA";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
 export const DEBOUNCE_TIMEOUT = 500;
 export const LOADING_BUTTON_TIMEOUT = 400;
@@ -90,28 +92,6 @@ const AlertIcon = () => {
   return <AlertTriangle className="mr-1 inline-block h-3 w-3 text-amber-500" />;
 };
 
-const ButtonHelper = ({
-  children,
-  className,
-  ...props
-}: { children: React.ReactNode; className?: string } & React.ComponentProps<
-  typeof Button
->) => {
-  return (
-    <Button
-      _variant="link"
-      _size="sm"
-      className={cn(
-        "h-5 max-w-full whitespace-normal text-pretty p-0 text-left underline",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </Button>
-  );
-};
-
 interface InvoiceFormProps {
   invoiceData: InvoiceData;
   onInvoiceDataChange: (updatedData: InvoiceData) => void;
@@ -140,6 +120,7 @@ export function InvoiceForm({
   const dateOfIssue = useWatch({ control, name: "dateOfIssue" });
   const dateOfService = useWatch({ control, name: "dateOfService" });
   const paymentDue = useWatch({ control, name: "paymentDue" });
+  const language = useWatch({ control, name: "language" });
 
   const isDateOfIssueInCurrentMonth =
     checkIfDateOnInvoiceIsInCurrentMonth(dateOfIssue);
@@ -165,8 +146,6 @@ export function InvoiceForm({
     control,
     name: "items",
   });
-
-  // const sellerSelectId = useId();
 
   // calculate totals and other values when invoice items change
   useEffect(() => {
@@ -274,7 +253,64 @@ export function InvoiceForm({
   return (
     <>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, (errors) => {
+          console.error("Form validation errors:", errors);
+          toast.error(
+            <div>
+              <p className="font-semibold">Please fix the following errors:</p>
+              <ul className="mt-1 list-inside list-disc">
+                {Object.entries(errors)
+                  .map(([key, error]) => {
+                    // Handle nested errors (e.g., seller.name, items[0].name)
+                    if (
+                      error &&
+                      typeof error === "object" &&
+                      "message" in error
+                    ) {
+                      return (
+                        <li key={key} className="text-sm">
+                          {error?.message || "Unknown error"}
+                        </li>
+                      );
+                    }
+
+                    // Handle array errors (e.g., items array)
+                    if (Array.isArray(error)) {
+                      return error.map((item, index) =>
+                        Object.entries(
+                          item as Record<string, { message?: string }>
+                        ).map(([fieldName, fieldError]) => (
+                          <li
+                            key={`${key}.${index}.${fieldName}`}
+                            className="text-sm"
+                          >
+                            {fieldError?.message || "Unknown error"}
+                          </li>
+                        ))
+                      );
+                    }
+
+                    // Handle nested object errors
+                    if (error && typeof error === "object") {
+                      return Object.entries(error).map(
+                        ([nestedKey, nestedError]) => (
+                          <li key={`${key}.${nestedKey}`} className="text-sm">
+                            {nestedError?.message || "Unknown error"}
+                          </li>
+                        )
+                      );
+                    }
+
+                    return null;
+                  })
+                  .flat(Infinity)}
+              </ul>
+            </div>,
+            {
+              closeButton: true,
+            }
+          );
+        })}
         className="mb-4 space-y-3.5"
         id={PDF_DATA_FORM_ID}
       >
@@ -546,37 +582,12 @@ export function InvoiceForm({
         <fieldset className="rounded-lg border p-4 shadow">
           <Legend>Seller Information</Legend>
 
-          {/* TODO: Will be done later */
-          /*
+          {/* Seller Select */}
           <div className="relative bottom-3 flex items-end justify-end gap-2">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1">
-                  <Label htmlFor={sellerSelectId}>Select Seller</Label>
-                  <CustomTooltip
-                    trigger={<Info className="h-3 w-3" />}
-                    content="You can save multiple sellers to use them later"
-                  />
-                </div>
-                <SelectNative
-                  id={sellerSelectId}
-                  className="block h-8 text-[12px] lg:text-[12px]"
-                >
-                  {/* TODO: fetch sellers from local storage */
-          /*}
-                  <option value="1">Seller 1</option>
-                  <option value="2">Seller 2</option>
-                  <option value="3">Seller 3</option>
-                </SelectNative>
-              </div>
+            <SellerManagement setValue={setValue} invoiceData={invoiceData} />
+          </div>
 
-              {/* TODO: add new seller modal + form and save to local storage */
-          /*}
-              <Button _variant="outline" _size="sm" className="">
-                New Seller
-                <Plus className="ml-1 h-3 w-3" />
-              </Button>
-            </div>
-          </> */}
+          {/* Seller Information Form */}
           <div className="space-y-4">
             <div>
               <Label htmlFor="sellerName" className="mb-1">
@@ -779,6 +790,17 @@ export function InvoiceForm({
                 <ErrorMessage>{errors.seller.swiftBic.message}</ErrorMessage>
               )}
             </div>
+            {/* TODO: add button that opens dialog to save seller with prefilled data from the form
+             <div className="flex justify-end">
+              <Button
+                type="button"
+                _variant="outline"
+                onClick={() => {
+                }}
+              >
+                Save seller
+              </Button>
+            </div> */}
           </div>
         </fieldset>
 
@@ -1117,16 +1139,32 @@ export function InvoiceForm({
                     <Controller
                       name={`items.${index}.amount`}
                       control={control}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id={`itemAmount${index}`}
-                          type="number"
-                          step="1"
-                          min="0"
-                          className=""
-                        />
-                      )}
+                      render={({ field }) => {
+                        const fieldValueNumber = Number(field.value) || 0;
+                        const previewFormattedValue =
+                          fieldValueNumber.toLocaleString("en-US", {
+                            style: "decimal",
+                            maximumFractionDigits: 3,
+                          });
+
+                        return (
+                          <>
+                            <Input
+                              {...field}
+                              id={`itemAmount${index}`}
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              className=""
+                            />
+                            {!errors.items?.[index]?.amount && (
+                              <InputHelperMessage>
+                                Preview: {previewFormattedValue}
+                              </InputHelperMessage>
+                            )}
+                          </>
+                        );
+                      }}
                     />
                     {errors.items?.[index]?.amount && (
                       <ErrorMessage>
@@ -1231,33 +1269,46 @@ export function InvoiceForm({
                       <Controller
                         name={`items.${index}.netPrice`}
                         control={control}
-                        render={({ field }) => (
-                          <div className="flex w-full flex-col">
-                            <MoneyInput
-                              {...field}
-                              id={`itemNetPrice${index}`}
-                              currency={currency}
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              className="w-full"
-                            />
-                            {!errors.items?.[index]?.netPrice && (
-                              <InputHelperMessage>
-                                Preview:{" "}
-                                {Number(field.value || 0).toLocaleString(
-                                  "en-US",
-                                  {
-                                    style: "currency",
-                                    currency: currency,
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  }
-                                )}
-                              </InputHelperMessage>
-                            )}
-                          </div>
-                        )}
+                        render={({ field }) => {
+                          const fieldValueNumber = Number(field.value) || 0;
+
+                          const previewFormattedValue =
+                            fieldValueNumber.toLocaleString("en-US", {
+                              style: "currency",
+                              currency: currency,
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            });
+
+                          const previewAmountInWords = getAmountInWords({
+                            amount: fieldValueNumber,
+                            language,
+                          });
+
+                          const previewNumberFractionalPart =
+                            getNumberFractionalPart(fieldValueNumber);
+
+                          return (
+                            <div className="flex w-full flex-col">
+                              <MoneyInput
+                                {...field}
+                                id={`itemNetPrice${index}`}
+                                currency={currency}
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                className="w-full"
+                              />
+                              {!errors.items?.[index]?.netPrice && (
+                                <InputHelperMessage>
+                                  Preview: {previewFormattedValue} (
+                                  {previewAmountInWords} {currency}{" "}
+                                  {previewNumberFractionalPart}/100)
+                                </InputHelperMessage>
+                              )}
+                            </div>
+                          );
+                        }}
                       />
                     </div>
                     {errors.items?.[index]?.netPrice && (
@@ -1324,7 +1375,7 @@ export function InvoiceForm({
                       </ErrorMessage>
                     ) : (
                       <InputHelperMessage>
-                        Enter NP, OO or percentage value
+                        Enter NP, OO or percentage value (0-100)
                       </InputHelperMessage>
                     )}
                   </div>

@@ -54,7 +54,7 @@ export function InvoiceVATSummaryTable({
     .replaceAll(",", " ");
 
   return (
-    <View style={[styles.table, { width: "50%" }]}>
+    <View style={[styles.table, { width: "100%" }]}>
       {/* Header row */}
       <View style={styles.tableRow}>
         <View style={[styles.tableCol, { width: "25%" }]}>

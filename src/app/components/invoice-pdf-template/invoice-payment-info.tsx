@@ -19,7 +19,7 @@ export function InvoicePaymentInfo({
   const paymentMethodIsVisible = invoiceData.paymentMethodFieldIsVisible;
 
   return (
-    <View>
+    <View style={{ maxWidth: "250px" }}>
       {paymentMethodIsVisible && (
         <Text style={styles.fontSize7}>
           {t.paymentInfo.paymentMethod}:{" "}

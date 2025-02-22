@@ -58,7 +58,7 @@ export default function RootLayout({
           }}
         />
         {/* https://sonner.emilkowal.ski/ */}
-        <Toaster visibleToasts={1} />
+        <Toaster visibleToasts={1} richColors />
       </body>
     </html>
   );
