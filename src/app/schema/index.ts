@@ -23,10 +23,19 @@ export const invoiceItemSchema = z
     // Show/hide Number column on PDF
     invoiceItemNumberIsVisible: z.boolean().default(true),
 
-    name: z.string().min(1, "Item name is required").trim(),
+    name: z
+      .string()
+      .min(1, "Item name is required")
+      .max(500, "Item name must not exceed 500 characters")
+      .trim(),
     nameFieldIsVisible: z.boolean().default(true),
 
-    typeOfGTU: z.string().trim().optional().default(""),
+    typeOfGTU: z
+      .string()
+      .max(50, "Type of GTU must not exceed 50 characters")
+      .trim()
+      .optional()
+      .default(""),
     typeOfGTUFieldIsVisible: z.boolean().default(true),
 
     amount: z
@@ -37,6 +46,9 @@ export const invoiceItemSchema = z
       .transform(Number)
       .refine((val) => val > 0, {
         message: "Amount must be positive",
+      })
+      .refine((val) => val <= 9_999_999_999.99, {
+        message: "Amount must not exceed 9.999.999.999",
       }),
     amountFieldIsVisible: z.boolean().default(true),
 
@@ -51,6 +63,9 @@ export const invoiceItemSchema = z
       .transform(Number)
       .refine((val) => val >= 0, {
         message: "Net price must be >= 0",
+      })
+      .refine((val) => val <= 100_000_000_000, {
+        message: "Net price must not exceed 100 billion",
       }),
     netPriceFieldIsVisible: z.boolean().default(true),
 
@@ -90,18 +105,38 @@ export const sellerSchema = z
   .object({
     id: z.string().optional(),
 
-    name: z.string().min(1, "Seller name is required").trim(),
-    address: z.string().min(1, "Seller address is required").trim(),
+    name: z
+      .string()
+      .min(1, "Seller name is required")
+      .max(500, "Seller name must not exceed 500 characters")
+      .trim(),
+    address: z
+      .string()
+      .min(1, "Seller address is required")
+      .max(500, "Seller address must not exceed 500 characters")
+      .trim(),
 
-    vatNo: z.string().trim().optional(),
+    vatNo: z
+      .string()
+      .max(200, "VAT number must not exceed 200 characters")
+      .trim()
+      .optional(),
     vatNoFieldIsVisible: z.boolean().default(true),
 
     email: z.string().email("Invalid email address").trim(),
 
-    accountNumber: z.string().trim().optional(),
+    accountNumber: z
+      .string()
+      .max(200, "Account number must not exceed 200 characters")
+      .trim()
+      .optional(),
     accountNumberFieldIsVisible: z.boolean().default(true),
 
-    swiftBic: z.string().trim().optional(),
+    swiftBic: z
+      .string()
+      .max(200, "SWIFT/BIC must not exceed 200 characters")
+      .trim()
+      .optional(),
     swiftBicFieldIsVisible: z.boolean().default(true),
   })
   .strict();
@@ -112,10 +147,21 @@ export const buyerSchema = z
   .object({
     id: z.string().optional(),
 
-    name: z.string().min(1, "Buyer name is required").trim(),
-    address: z.string().min(1, "Buyer address is required").trim(),
-
-    vatNo: z.string().trim().optional(),
+    name: z
+      .string()
+      .min(1, "Buyer name is required")
+      .max(500, "Buyer name must not exceed 500 characters")
+      .trim(),
+    address: z
+      .string()
+      .min(1, "Buyer address is required")
+      .max(500, "Buyer address must not exceed 500 characters")
+      .trim(),
+    vatNo: z
+      .string()
+      .max(200, "VAT number must not exceed 200 characters")
+      .trim()
+      .optional(),
     vatNoFieldIsVisible: z.boolean().default(true),
 
     email: z.string().email("Invalid email address").trim(),
@@ -133,7 +179,11 @@ export const invoiceSchema = z.object({
   dateOfIssue: z.string().min(1, "Date of issue is required").trim(),
   dateOfService: z.string().min(1, "Date of service is required").trim(),
 
-  invoiceType: z.string().trim().optional(),
+  invoiceType: z
+    .string()
+    .max(500, "Invoice type must not exceed 500 characters")
+    .trim()
+    .optional(),
   invoiceTypeFieldIsVisible: z.boolean().default(true),
 
   seller: sellerSchema,
@@ -145,12 +195,20 @@ export const invoiceSchema = z.object({
   // Show/hide VAT Table Summary on PDF
   vatTableSummaryIsVisible: z.boolean().default(true),
 
-  paymentMethod: z.string().trim().optional(),
+  paymentMethod: z
+    .string()
+    .max(500, "Payment method must not exceed 500 characters")
+    .trim()
+    .optional(),
   paymentMethodFieldIsVisible: z.boolean().default(true),
 
   paymentDue: z.string().min(1, "Payment due is required").trim(),
 
-  notes: z.string().trim().optional(),
+  notes: z
+    .string()
+    .max(3500, "Notes must not exceed 3500 characters")
+    .trim()
+    .optional(),
   notesFieldIsVisible: z.boolean().default(true),
 
   personAuthorizedToReceiveFieldIsVisible: z.boolean().default(true),

@@ -60,7 +60,7 @@ export function InvoiceItemsTable({
           {/* Amount column */}
           {isAmountFieldVisible ? (
             <View style={[styles.tableCol, styles.colAmount, styles.center]}>
-              <Text style={[styles.tableCellBold, {}]}>
+              <Text style={[styles.tableCellBold]}>
                 {t.invoiceItemsTable.amount}
               </Text>
             </View>
@@ -125,6 +125,13 @@ export function InvoiceItemsTable({
 
         {/* Table rows */}
         {invoiceData?.items.map((item, index) => {
+          const formattedAmount = item.amount
+            .toLocaleString("en-US", {
+              style: "decimal",
+              maximumFractionDigits: 3,
+            })
+            .replaceAll(",", " ");
+
           const formattedNetPrice = item.netPrice
             .toLocaleString("en-US", {
               minimumFractionDigits: 2,
@@ -194,7 +201,7 @@ export function InvoiceItemsTable({
                     ]}
                   >
                     {typeof item?.amount === "number"
-                      ? item.amount.toFixed(2)
+                      ? formattedAmount
                       : "0.00"}
                   </Text>
                 </View>

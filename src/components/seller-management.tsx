@@ -20,6 +20,7 @@ import {
 import type { UseFormSetValue } from "react-hook-form";
 import { sellerSchema, type InvoiceData, type SellerData } from "@/app/schema";
 import { z } from "zod";
+import { toast } from "sonner";
 
 export const SELLERS_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_SELLERS";
 
@@ -37,6 +38,8 @@ export function SellerManagement({
   const [editingSeller, setEditingSeller] = useState<SellerData | null>(null);
 
   const sellerSelectId = useId();
+
+  const isEditMode = Boolean(editingSeller);
 
   // Load sellers from localStorage on component mount
   useEffect(() => {
@@ -67,22 +70,37 @@ export function SellerManagement({
   }, [invoiceData.seller?.id]);
 
   // Update sellers when a new one is added
-  const handleSellerSaved = (newSeller: SellerData) => {
-    setSellers((prevSellers) => {
-      const updatedSellers = [...prevSellers, newSeller];
+  const handleSellerAdd = (
+    newSeller: SellerData,
+    {
+      shouldApplyNewSellerToInvoice,
+    }: { shouldApplyNewSellerToInvoice: boolean }
+  ) => {
+    const newSellerWithId = {
+      ...newSeller,
+      // Generate a unique ID for the new seller (IMPORTANT!) =)
+      id: Date.now().toString(),
+    };
 
-      localStorage.setItem(
-        SELLERS_LOCAL_STORAGE_KEY,
-        JSON.stringify(updatedSellers)
-      );
-      return updatedSellers;
+    const newSellers = [...sellers, newSellerWithId];
+
+    // Save to localStorage
+    localStorage.setItem(SELLERS_LOCAL_STORAGE_KEY, JSON.stringify(newSellers));
+    setSellers(newSellers);
+
+    // Apply the new seller to the invoice if the user wants to, otherwise just add it to the list and use it later if needed
+    if (shouldApplyNewSellerToInvoice) {
+      setValue("seller", newSellerWithId);
+      setSelectedSellerIndex(newSellerWithId?.id);
+    }
+
+    toast.success("Seller added successfully", {
+      richColors: true,
     });
-    setValue("seller", newSeller);
-    setSelectedSellerIndex(newSeller?.id ?? "");
   };
 
   // Update sellers when edited
-  const handleSellerEdited = (editedSeller: SellerData) => {
+  const handleSellerEdit = (editedSeller: SellerData) => {
     setSellers((prevSellers) => {
       const updatedSellers = prevSellers.map((seller) =>
         seller.id === editedSeller.id ? editedSeller : seller
@@ -94,8 +112,13 @@ export function SellerManagement({
       );
       return updatedSellers;
     });
+
     setValue("seller", editedSeller);
     setEditingSeller(null);
+
+    toast.success("Seller updated successfully", {
+      richColors: true,
+    });
   };
 
   const handleSellerChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -108,6 +131,20 @@ export function SellerManagement({
       if (selectedSeller) {
         setValue("seller", selectedSeller);
       }
+    } else {
+      // Clear the seller from the form if the user selects the empty option
+      setSelectedSellerIndex("");
+      setValue("seller", {
+        name: "",
+        address: "",
+        vatNo: "",
+        email: "",
+        accountNumber: "",
+        swiftBic: "",
+        vatNoFieldIsVisible: true,
+        accountNumberFieldIsVisible: true,
+        swiftBicFieldIsVisible: true,
+      });
     }
   };
 
@@ -138,6 +175,10 @@ export function SellerManagement({
     });
 
     setIsDeleteDialogOpen(false);
+
+    toast.success("Seller deleted successfully", {
+      richColors: true,
+    });
   };
 
   const activeSeller = sellers.find(
@@ -165,9 +206,7 @@ export function SellerManagement({
                 onChange={handleSellerChange}
                 value={selectedSellerIndex}
               >
-                <option value="" disabled>
-                  Choose a seller
-                </option>
+                <option value="">Choose a seller (default)</option>
                 {sellers.map((seller) => (
                   <option key={seller.id} value={seller.id}>
                     {seller.name}
@@ -229,14 +268,16 @@ export function SellerManagement({
       </div>
 
       <SellerDialog
-        isOpen={isSellerDialogOpen || editingSeller !== null}
+        isOpen={isSellerDialogOpen || isEditMode}
         onClose={() => {
           setIsSellerDialogOpen(false);
           setEditingSeller(null);
         }}
-        onSellerSaved={editingSeller ? handleSellerEdited : handleSellerSaved}
+        handleSellerAdd={handleSellerAdd}
+        handleSellerEdit={handleSellerEdit}
         initialData={editingSeller}
         key={editingSeller?.id}
+        isEditMode={isEditMode}
       />
 
       {/* Delete alert seller dialog */}
@@ -249,8 +290,10 @@ export function SellerManagement({
             <AlertDialogTitle>Delete Seller</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete{" "}
-              <span className="font-bold">{activeSeller?.name}</span> seller?
-              This action cannot be undone.
+              <span className="font-bold">
+                &quot;{activeSeller?.name}&quot;
+              </span>{" "}
+              seller? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

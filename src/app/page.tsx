@@ -9,7 +9,7 @@ import {
 } from "@/app/schema";
 import { Button } from "@/components/ui/button";
 import { CustomTooltip, TooltipProvider } from "@/components/ui/tooltip";
-import { useMediaQuery } from "@/lib/hooks/use-media-query";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import dayjs from "dayjs";
 import {
   compressToEncodedURIComponent,
@@ -213,11 +213,16 @@ export default function Home() {
               JSON.stringify(newInvoiceDataValidated)
             ) {
               toast.info(
-                <p>
-                  <span className="font-semibold">Changes detected:</span> This
-                  invoice differs from the shared link version. To share your
-                  updated invoice, please click &apos;Generate a link to
-                  invoice&apos; to create a new shareable link.
+                <p className="text-pretty text-sm leading-relaxed">
+                  <span className="font-semibold text-blue-600">
+                    Invoice Updated:
+                  </span>{" "}
+                  Your changes have modified this invoice from its shared
+                  version. Click{" "}
+                  <span className="font-semibold underline">
+                    &apos;Generate a link to invoice&apos;
+                  </span>{" "}
+                  to create an updated shareable link.
                 </p>,
                 {
                   duration: 10000,

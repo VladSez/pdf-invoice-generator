@@ -1,15 +1,9 @@
 import { View, Text } from "@react-pdf/renderer";
 import { styles } from ".";
 import type { InvoiceData } from "@/app/schema";
-import n2words from "n2words";
 import { translations } from "./translations";
 
-// Get the fractional part of the total
-const getFractionalPart = (total: number = 0) => {
-  return Math.round((total % 1) * 100)
-    .toString()
-    .padStart(2, "0");
-};
+import { getAmountInWords, getNumberFractionalPart } from "@/lib/utils";
 
 export function InvoicePaymentTotals({
   invoiceData,
@@ -21,11 +15,12 @@ export function InvoicePaymentTotals({
   const language = invoiceData.language;
   const t = translations[language];
 
-  const invoiceTotalInWords = n2words(Math.floor(invoiceData?.total ?? 0), {
-    lang: language,
+  const invoiceTotalInWords = getAmountInWords({
+    amount: invoiceData?.total ?? 0,
+    language,
   });
 
-  const fractionalPart = getFractionalPart(invoiceData?.total ?? 0);
+  const fractionalPart = getNumberFractionalPart(invoiceData?.total ?? 0);
 
   const currency = invoiceData.currency;
 

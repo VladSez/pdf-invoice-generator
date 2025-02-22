@@ -29,25 +29,31 @@ import { CustomTooltip } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { SELLERS_LOCAL_STORAGE_KEY } from "./seller-management";
 import { z } from "zod";
+import { useState } from "react";
 
 const SELLER_FORM_ID = "seller-form";
 interface SellerDialogProps {
   isOpen: boolean;
   onClose: React.Dispatch<React.SetStateAction<boolean>>;
-  onSellerSaved?: (seller: SellerData) => void;
+  handleSellerAdd?: (
+    seller: SellerData,
+    {
+      shouldApplyNewSellerToInvoice,
+    }: { shouldApplyNewSellerToInvoice: boolean }
+  ) => void;
+  handleSellerEdit?: (seller: SellerData) => void;
   initialData: SellerData | null;
+  isEditMode: boolean;
 }
 
 export function SellerDialog({
   isOpen,
   onClose,
-  onSellerSaved,
+  handleSellerAdd,
+  handleSellerEdit,
   initialData,
+  isEditMode,
 }: SellerDialogProps) {
-  const isEditMode = Boolean(initialData);
-
-  console.log({ initialData, isEditMode });
-
   const form = useForm<SellerData>({
     resolver: zodResolver(sellerSchema),
     defaultValues: {
@@ -65,13 +71,12 @@ export function SellerDialog({
     },
   });
 
+  const [shouldApplyNewSellerToInvoice, setShouldApplyNewSellerToInvoice] =
+    useState(false);
+
   function onSubmit(formValues: SellerData) {
     try {
-      const newSellerFormValues = {
-        ...formValues,
-        // Generate a random id
-        id: Date.now().toString(),
-      };
+      // **RUNNING SOME VALIDATIONS FIRST**
 
       // Get existing sellers or initialize empty array
       const sellers = localStorage.getItem(SELLERS_LOCAL_STORAGE_KEY);
@@ -91,6 +96,7 @@ export function SellerDialog({
         // Show error toast
         toast.error("Error loading existing sellers", {
           richColors: true,
+          description: "Please try again",
         });
 
         // Reset localStorage if validation fails
@@ -99,9 +105,12 @@ export function SellerDialog({
         return;
       }
 
-      // Validate new seller data against existing sellers
+      // we don't need to validate the name if we are editing an existing seller
+
+      // Validate seller data against existing sellers
       const isDuplicateName = existingSellers.some(
-        (seller: SellerData) => seller.name === newSellerFormValues.name
+        (seller: SellerData) =>
+          seller.name === formValues.name && seller.id !== formValues.id
       );
 
       if (isDuplicateName) {
@@ -121,26 +130,13 @@ export function SellerDialog({
         return;
       }
 
-      const existingSellersData = existingSellersValidationResult.data ?? [];
-
-      // Add new seller with random id
-      const updatedSellers = [
-        ...existingSellersData,
-        {
-          ...newSellerFormValues,
-        },
-      ] satisfies SellerData[];
-
-      const stringifiedUpdatedSellers = JSON.stringify(updatedSellers);
-
-      // Save to localStorage
-      localStorage.setItem(
-        SELLERS_LOCAL_STORAGE_KEY,
-        stringifiedUpdatedSellers
-      );
-
-      // Notify parent component
-      onSellerSaved?.(newSellerFormValues);
+      if (isEditMode) {
+        // Edit seller
+        handleSellerEdit?.(formValues);
+      } else {
+        // Add new seller
+        handleSellerAdd?.(formValues, { shouldApplyNewSellerToInvoice });
+      }
 
       // Close dialog
       onClose(false);
@@ -149,6 +145,11 @@ export function SellerDialog({
       form.reset();
     } catch (error) {
       console.error("Failed to save seller:", error);
+
+      toast.error("Failed to save seller", {
+        description: "Please try again",
+        richColors: true,
+      });
     }
   }
 
@@ -255,9 +256,14 @@ export function SellerDialog({
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              id="vatNoFieldIsVisible"
                             />
                             <CustomTooltip
-                              trigger={<Label>Show in PDF</Label>}
+                              trigger={
+                                <Label htmlFor="vatNoFieldIsVisible">
+                                  Show in PDF
+                                </Label>
+                              }
                               content='Show/Hide the "VAT Number" field in the PDF'
                               className="z-[1000]"
                             />
@@ -297,9 +303,14 @@ export function SellerDialog({
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              id="accountNumberFieldIsVisible"
                             />
                             <CustomTooltip
-                              trigger={<Label>Show in PDF</Label>}
+                              trigger={
+                                <Label htmlFor="accountNumberFieldIsVisible">
+                                  Show in PDF
+                                </Label>
+                              }
                               content='Show/Hide the "Account Number" field in the PDF'
                               className="z-[1000]"
                             />
@@ -341,9 +352,14 @@ export function SellerDialog({
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              id="swiftBicFieldIsVisible"
                             />
                             <CustomTooltip
-                              trigger={<Label>Show in PDF</Label>}
+                              trigger={
+                                <Label htmlFor="swiftBicFieldIsVisible">
+                                  Show in PDF
+                                </Label>
+                              }
                               content='Show/Hide the "SWIFT/BIC" field in the PDF'
                               className="z-[1000]"
                             />
@@ -356,6 +372,22 @@ export function SellerDialog({
               </div>
             </form>
           </Form>
+
+          {/* Apply new seller to current invoice switch */}
+          {!isEditMode ? (
+            <div className="mt-4 flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={shouldApplyNewSellerToInvoice}
+                  onCheckedChange={setShouldApplyNewSellerToInvoice}
+                  id="apply-seller-to-current-invoice-switch"
+                />
+                <Label htmlFor="apply-seller-to-current-invoice-switch">
+                  Apply Seller to current invoice
+                </Label>
+              </div>
+            </div>
+          ) : null}
         </div>
         <DialogFooter className="border-border border-t px-6 py-4">
           <DialogClose asChild>
