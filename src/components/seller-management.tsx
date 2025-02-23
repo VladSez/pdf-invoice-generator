@@ -1,6 +1,5 @@
 import { Plus, Trash2, Pencil } from "lucide-react";
 
-import { Label } from "@radix-ui/react-label";
 // import { Info } from "lucide-react";
 import { useId, useState, useEffect } from "react";
 import { CustomTooltip } from "./ui/tooltip";
@@ -27,6 +26,7 @@ import {
 import { z } from "zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Label } from "./ui/label";
 
 export const SELLERS_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_SELLERS";
 
@@ -177,7 +177,7 @@ export function SellerManagement({
         {sellers.length > 0 ? (
           <div className="space-y-1">
             <div className="flex items-center gap-1">
-              <Label htmlFor={sellerSelectId} className="text-[12px]">
+              <Label htmlFor={sellerSelectId} className="">
                 Select Seller
               </Label>
             </div>
@@ -185,7 +185,7 @@ export function SellerManagement({
               <SelectNative
                 id={sellerSelectId}
                 className={cn(
-                  "block h-8 max-w-[200px] text-[12px] lg:text-[12px]",
+                  "block h-8 max-w-[200px] text-[12px]",
                   !selectedSellerIndex && "italic text-gray-700"
                 )}
                 onChange={handleSellerChange}

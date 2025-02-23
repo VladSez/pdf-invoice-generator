@@ -621,7 +621,7 @@ export function InvoiceForm({
                   invoiceData={invoiceData}
                 />
               </div>
-              <div className="space-y-4">
+              <div className="mt-5 space-y-4">
                 <div>
                   <Label htmlFor="sellerName" className="mb-1">
                     Name
@@ -1789,27 +1789,47 @@ export function InvoiceForm({
 
         {/* Payment Due */}
         <div>
-          <Label htmlFor="paymentDue" className="mb-1">
-            Payment Due
-          </Label>
-          <Controller
-            name="paymentDue"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} id="paymentDue" type="date" className="" />
+          <div className="mb-6">
+            <Label htmlFor="paymentDue" className="mb-1">
+              Payment Due
+            </Label>
+            <Controller
+              name="paymentDue"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} id="paymentDue" type="date" className="" />
+              )}
+            />
+            {errors.paymentDue && (
+              <ErrorMessage>{errors.paymentDue.message}</ErrorMessage>
             )}
-          />
-          {errors.paymentDue && (
-            <ErrorMessage>{errors.paymentDue.message}</ErrorMessage>
-          )}
-          {!errors.paymentDue && isPaymentDueBeforeDateOfIssue ? (
-            <InputHelperMessage>
-              <span className="flex items-center text-balance">
-                <AlertIcon />
-                Payment due date is before date of issue (
-                {dayjs(dateOfIssue).format("DD.MM.YYYY")})
-              </span>
+            {!errors.paymentDue && isPaymentDueBeforeDateOfIssue ? (
+              <InputHelperMessage>
+                <span className="flex items-center text-balance">
+                  <AlertIcon />
+                  Payment due date is before date of issue (
+                  {dayjs(dateOfIssue).format("DD.MM.YYYY")})
+                </span>
+                <ButtonHelper
+                  onClick={() => {
+                    const newPaymentDue = dayjs(dateOfIssue)
+                      .add(14, "days")
+                      .format("YYYY-MM-DD");
+
+                    setValue("paymentDue", newPaymentDue);
+                  }}
+                >
+                  Click to set payment due date 14 days after the date of issue
+                  ({dayjs(dateOfIssue).add(14, "days").format("DD/MM/YYYY")})
+                </ButtonHelper>
+              </InputHelperMessage>
+            ) : null}
+            {/* If there are no errors and the payment due date is not before the date of issue and the payment due date is not 14 days after the date of issue, show the button to set the payment due date to 14 days after the date of issue (probably a bit better UX) */}
+            {!errors.paymentDue &&
+            !isPaymentDueBeforeDateOfIssue &&
+            !isPaymentDue14DaysFromDateOfIssue ? (
               <ButtonHelper
+                className="whitespace-normal"
                 onClick={() => {
                   const newPaymentDue = dayjs(dateOfIssue)
                     .add(14, "days")
@@ -1821,30 +1841,12 @@ export function InvoiceForm({
                 Click to set payment due date 14 days after the date of issue (
                 {dayjs(dateOfIssue).add(14, "days").format("DD/MM/YYYY")})
               </ButtonHelper>
-            </InputHelperMessage>
-          ) : null}
-          {/* If there are no errors and the payment due date is not before the date of issue and the payment due date is not 14 days after the date of issue, show the button to set the payment due date to 14 days after the date of issue (probably a bit better UX) */}
-          {!errors.paymentDue &&
-          !isPaymentDueBeforeDateOfIssue &&
-          !isPaymentDue14DaysFromDateOfIssue ? (
-            <ButtonHelper
-              className="whitespace-normal"
-              onClick={() => {
-                const newPaymentDue = dayjs(dateOfIssue)
-                  .add(14, "days")
-                  .format("YYYY-MM-DD");
-
-                setValue("paymentDue", newPaymentDue);
-              }}
-            >
-              Click to set payment due date 14 days after the date of issue (
-              {dayjs(dateOfIssue).add(14, "days").format("DD/MM/YYYY")})
-            </ButtonHelper>
-          ) : null}
+            ) : null}
+          </div>
         </div>
 
         {/* Notes */}
-        <div className="mb-4">
+        <div className="">
           <div className="relative mb-2 flex items-center justify-between">
             <Label htmlFor="notes" className="">
               Notes

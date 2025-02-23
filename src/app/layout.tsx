@@ -1,9 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 
 import "./globals.css";
 import { Toaster } from "sonner";
+
+export const viewport: Viewport = {
+  initialScale: 1, // Sets the default zoom level to 1 (100%)
+  width: "device-width", // Ensures the viewport width matches the device's screen width
+  maximumScale: 1, // Prevents users from zooming in
+  viewportFit: "cover", // Enables edge-to-edge content display on devices with rounded corners (like iPhones with a notch)
+};
 
 export const metadata: Metadata = {
   title: "Free PDF Invoice Generator with Live Preview",
