@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import Loglib from "@loglib/tracker/react";
+import { OpenPanelComponent } from "@openpanel/nextjs";
 
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -51,12 +51,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <NuqsAdapter>{children}</NuqsAdapter>
-        <Loglib
-          config={{
-            id: "pdf-invoice-editor",
-            webVitals: true,
-          }}
-        />
+        {/* https://openpanel.dev/docs */}
+        {process.env.NODE_ENV === "production" && (
+          <OpenPanelComponent
+            clientId="34cab0b1-c372-4d2d-9646-9a4cea67faf9"
+            trackScreenViews={true}
+          />
+        )}
         {/* https://sonner.emilkowal.ski/ */}
         <Toaster visibleToasts={1} richColors />
       </body>

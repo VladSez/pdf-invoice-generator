@@ -1,6 +1,8 @@
 # [EasyInvoicePDF](https://easyinvoicepdf.com)
 
-[EasyInvoicePDF](https://easyinvoicepdf.com) – Free & Open-Source Invoice Generator | Live Preview, No Sign-Up, Runs in Your Browser
+[EasyInvoicePDF](https://easyinvoicepdf.com) – Free & Open-Source Invoice Generator | Live Preview, No Sign-Up, Runs in Your Browser.
+
+If you find this project useful, consider supporting it: https://buymeacoffee.com/vladsazon
 
 <img width="1440" alt="image" src="https://github.com/user-attachments/assets/a8b14dbb-234d-4506-9f59-232750dec642" />
 
@@ -14,8 +16,7 @@
 - [Origin UI](https://originui.com/)
 - [@react-pdf/renderer](https://github.com/diegomura/react-pdf)
 
-
 ## other tools we use
 
-- https://www.loglib.io/s/pdf-invoice-editor for analytics
-- Generate beautiful OG images: https://og.new/
+- Generate beautiful OG images: https://og.new
+- Analytics: https://dashboard.openpanel.dev
