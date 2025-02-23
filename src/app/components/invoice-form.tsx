@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CustomTooltip } from "@/components/ui/tooltip";
 import { getAmountInWords, getNumberFractionalPart } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loglib } from "@loglib/tracker";
+import { useOpenPanel } from "@openpanel/nextjs";
 import dayjs from "dayjs";
 import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import React, { useCallback, useEffect } from "react";
@@ -101,6 +101,8 @@ export function InvoiceForm({
   invoiceData,
   onInvoiceDataChange,
 }: InvoiceFormProps) {
+  const openPanel = useOpenPanel();
+
   const {
     control,
     handleSubmit,
@@ -237,13 +239,13 @@ export function InvoiceForm({
       remove(index);
 
       // analytics track event
-      loglib.track("remove_invoice_item");
+      openPanel.track("remove_invoice_item");
 
       // Manually trigger form submission after removal
       const currentFormData = watch();
       debouncedRegeneratePdfOnFormChange(currentFormData);
     },
-    [remove, watch, debouncedRegeneratePdfOnFormChange]
+    [remove, openPanel, watch, debouncedRegeneratePdfOnFormChange]
   );
 
   const onSubmit = (data: InvoiceData) => {
@@ -1591,7 +1593,7 @@ export function InvoiceForm({
             type="button"
             onClick={() => {
               // analytics track event
-              loglib.track("add_invoice_item");
+              openPanel.track("add_invoice_item");
 
               append({
                 invoiceItemNumberIsVisible: true,

@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { usePDF } from "@react-pdf/renderer";
 import type { InvoiceData } from "@/app/schema";
 import { InvoicePdfTemplate } from "./invoice-pdf-template";
-import { loglib } from "@loglib/tracker";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { LOADING_BUTTON_TEXT, LOADING_BUTTON_TIMEOUT } from "./invoice-form";
 import { toast } from "sonner";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export function InvoicePDFDownloadLink({
   invoiceData,
@@ -18,6 +18,8 @@ export function InvoicePDFDownloadLink({
   const filename = `invoice-${
     invoiceData.language
   }-${invoiceData.invoiceNumber.replace("/", "-")}.pdf`;
+
+  const openPanel = useOpenPanel();
 
   const [{ loading: pdfLoading, url, error }, updatePdfInstance] = usePDF();
 
@@ -54,7 +56,7 @@ export function InvoicePDFDownloadLink({
         download={filename}
         onClick={() => {
           if (!isLoading && url) {
-            loglib.track("download_invoice");
+            openPanel.track("download_invoice");
           }
         }}
         className={cn(
