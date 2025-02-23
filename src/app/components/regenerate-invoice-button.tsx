@@ -58,11 +58,11 @@ export function RegenerateInvoiceButton({
               <span className="animate-pulse">{LOADING_BUTTON_TEXT}</span>
             </span>
           ) : (
-            "Regenerate invoice"
+            "Regenerate Invoice"
           )}
         </Button>
       }
-      content={isLoading ? null : "Manually regenerate invoice"}
+      content={isLoading ? null : "Click to regenerate the invoice PDF preview"}
     />
   );
 }

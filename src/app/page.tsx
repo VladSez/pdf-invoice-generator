@@ -282,7 +282,7 @@ export default function Home() {
                     Generate a link to invoice
                   </Button>
                 }
-                content="Share invoice with a link"
+                content="Generate a shareable link to this invoice. Share it with your clients to allow them to view the invoice online."
               />
               {isDesktop ? (
                 <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
