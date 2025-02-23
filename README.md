@@ -14,8 +14,7 @@
 - [Origin UI](https://originui.com/)
 - [@react-pdf/renderer](https://github.com/diegomura/react-pdf)
 
-
 ## other tools we use
 
-- https://www.loglib.io/s/pdf-invoice-editor for analytics
-- Generate beautiful OG images: https://og.new/
+- Generate beautiful OG images: https://og.new
+- Analytics: https://dashboard.openpanel.dev
