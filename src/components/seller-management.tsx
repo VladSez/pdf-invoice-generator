@@ -27,6 +27,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export const SELLERS_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_SELLERS";
 
@@ -43,6 +44,7 @@ export function SellerManagement({
   const [selectedSellerIndex, setSelectedSellerIndex] = useState("");
   const [editingSeller, setEditingSeller] = useState<SellerData | null>(null);
 
+  const openPanel = useOpenPanel();
   const sellerSelectId = useId();
 
   const isEditMode = Boolean(editingSeller);
@@ -82,49 +84,76 @@ export function SellerManagement({
       shouldApplyNewSellerToInvoice,
     }: { shouldApplyNewSellerToInvoice: boolean }
   ) => {
-    const newSellerWithId = {
-      ...newSeller,
-      // Generate a unique ID for the new seller (IMPORTANT!) =)
-      id: Date.now().toString(),
-    };
+    try {
+      const newSellerWithId = {
+        ...newSeller,
+        // Generate a unique ID for the new seller (IMPORTANT!) =)
+        id: Date.now().toString(),
+      };
 
-    const newSellers = [...sellers, newSellerWithId];
+      const newSellers = [...sellers, newSellerWithId];
 
-    // Save to localStorage
-    localStorage.setItem(SELLERS_LOCAL_STORAGE_KEY, JSON.stringify(newSellers));
-    setSellers(newSellers);
+      // Save to localStorage
+      localStorage.setItem(
+        SELLERS_LOCAL_STORAGE_KEY,
+        JSON.stringify(newSellers)
+      );
 
-    // Apply the new seller to the invoice if the user wants to, otherwise just add it to the list and use it later if needed
-    if (shouldApplyNewSellerToInvoice) {
-      setValue("seller", newSellerWithId);
-      setSelectedSellerIndex(newSellerWithId?.id);
+      // Update the sellers state
+      setSellers(newSellers);
+
+      // Apply the new seller to the invoice if the user wants to, otherwise just add it to the list and use it later if needed
+      if (shouldApplyNewSellerToInvoice) {
+        setValue("seller", newSellerWithId);
+        setSelectedSellerIndex(newSellerWithId?.id);
+      }
+
+      toast.success("Seller added successfully", {
+        richColors: true,
+      });
+
+      // analytics track event
+      openPanel.track("add_seller_success");
+    } catch (error) {
+      console.error("Failed to add seller:", error);
+
+      toast.error("Failed to add seller", {
+        closeButton: true,
+      });
     }
-
-    toast.success("Seller added successfully", {
-      richColors: true,
-    });
   };
 
   // Update sellers when edited
   const handleSellerEdit = (editedSeller: SellerData) => {
-    setSellers((prevSellers) => {
-      const updatedSellers = prevSellers.map((seller) =>
-        seller.id === editedSeller.id ? editedSeller : seller
-      );
+    try {
+      setSellers((prevSellers) => {
+        const updatedSellers = prevSellers.map((seller) =>
+          seller.id === editedSeller.id ? editedSeller : seller
+        );
 
-      localStorage.setItem(
-        SELLERS_LOCAL_STORAGE_KEY,
-        JSON.stringify(updatedSellers)
-      );
-      return updatedSellers;
-    });
+        localStorage.setItem(
+          SELLERS_LOCAL_STORAGE_KEY,
+          JSON.stringify(updatedSellers)
+        );
+        return updatedSellers;
+      });
 
-    setValue("seller", editedSeller);
-    setEditingSeller(null);
+      setValue("seller", editedSeller);
+      setEditingSeller(null);
 
-    toast.success("Seller updated successfully", {
-      richColors: true,
-    });
+      toast.success("Seller updated successfully", {
+        richColors: true,
+      });
+
+      // analytics track event
+      openPanel.track("edit_seller_success");
+    } catch (error) {
+      console.error("Failed to edit seller:", error);
+
+      toast.error("Failed to edit seller", {
+        closeButton: true,
+      });
+    }
   };
 
   const handleSellerChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -142,29 +171,45 @@ export function SellerManagement({
       setSelectedSellerIndex("");
       setValue("seller", DEFAULT_SELLER_DATA);
     }
+
+    // analytics track event
+    openPanel.track("change_seller");
   };
 
   const handleDeleteSeller = () => {
-    setSellers((prevSellers) => {
-      const updatedSellers = prevSellers.filter(
-        (seller) => seller.id !== selectedSellerIndex
-      );
+    try {
+      setSellers((prevSellers) => {
+        const updatedSellers = prevSellers.filter(
+          (seller) => seller.id !== selectedSellerIndex
+        );
 
-      localStorage.setItem(
-        SELLERS_LOCAL_STORAGE_KEY,
-        JSON.stringify(updatedSellers)
-      );
-      return updatedSellers;
-    });
-    setSelectedSellerIndex("");
-    // Clear the seller from the form if it was selected
-    setValue("seller", DEFAULT_SELLER_DATA);
+        localStorage.setItem(
+          SELLERS_LOCAL_STORAGE_KEY,
+          JSON.stringify(updatedSellers)
+        );
+        return updatedSellers;
+      });
+      // Clear the selected seller index
+      setSelectedSellerIndex("");
+      // Clear the seller from the form if it was selected
+      setValue("seller", DEFAULT_SELLER_DATA);
 
-    setIsDeleteDialogOpen(false);
+      // Close the delete dialog
+      setIsDeleteDialogOpen(false);
 
-    toast.success("Seller deleted successfully", {
-      richColors: true,
-    });
+      toast.success("Seller deleted successfully", {
+        richColors: true,
+      });
+
+      // analytics track event
+      openPanel.track("delete_seller_success");
+    } catch (error) {
+      console.error("Failed to delete seller:", error);
+
+      toast.error("Failed to delete seller", {
+        closeButton: true,
+      });
+    }
   };
 
   const activeSeller = sellers.find(
@@ -224,7 +269,9 @@ export function SellerManagement({
                       <Button
                         _variant="destructive"
                         _size="sm"
-                        onClick={() => setIsDeleteDialogOpen(true)}
+                        onClick={() => {
+                          setIsDeleteDialogOpen(true);
+                        }}
                         className="h-8 px-2"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -243,7 +290,9 @@ export function SellerManagement({
             <Button
               _variant="outline"
               _size="sm"
-              onClick={() => setIsSellerDialogOpen(true)}
+              onClick={() => {
+                setIsSellerDialogOpen(true);
+              }}
             >
               New Seller
               <Plus className="ml-1 h-3 w-3" />

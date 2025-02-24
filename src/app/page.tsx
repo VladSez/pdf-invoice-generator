@@ -20,6 +20,7 @@ import { InvoicePDFDownloadLink } from "./components/invoice-pdf-download-link";
 import { InvoicePdfTemplate } from "./components/invoice-pdf-template";
 import { RegenerateInvoiceButton } from "./components/regenerate-invoice-button";
 import { INITIAL_INVOICE_DATA } from "./constants";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 const InvoicePDFViewer = dynamic(
   () =>
@@ -44,6 +45,7 @@ export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const openPanel = useOpenPanel();
 
   const [invoiceDataState, setInvoiceDataState] = useState<InvoiceData | null>(
     null
@@ -167,6 +169,9 @@ export default function Home() {
         await navigator.clipboard.writeText(newFullUrl);
 
         toast.success("URL copied to clipboard!");
+
+        // analytics track event
+        openPanel.track("share_invoice_link");
       } catch (error) {
         console.error("Failed to share invoice:", error);
         toast.error("Failed to generate shareable link");
@@ -185,10 +190,25 @@ export default function Home() {
         <div className="mb-4 w-full max-w-7xl bg-white p-3 shadow-lg sm:mb-0 sm:rounded-lg sm:p-6">
           <div className="flex w-full flex-row flex-wrap items-center justify-between lg:flex-nowrap">
             <h1 className="mb-6 mt-6 w-full text-balance text-center text-xl font-bold sm:mb-4 sm:mt-0 sm:text-2xl lg:text-left">
-              Free Invoice PDF Generator with live preview
+              Free Invoice PDF Generator with Live Preview
             </h1>
 
             <div className="mb-1 flex w-full flex-wrap justify-center gap-3 lg:flex-nowrap lg:justify-end">
+              <Button
+                className="w-full bg-blue-500 text-white transition-all hover:scale-105 hover:bg-blue-600 hover:no-underline lg:w-auto"
+                _variant="link"
+              >
+                <a
+                  href="https://dub.sh/easyinvoice-donate"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="animate-heartbeat">❤️</span>
+                    <span>Support Project</span>
+                  </span>
+                </a>
+              </Button>
               <CustomTooltip
                 trigger={
                   <Button
@@ -207,7 +227,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mb-4 flex flex-row items-center justify-center lg:mb-0 lg:justify-start">
-            <span className="relative bottom-0 text-sm text-gray-900 lg:bottom-3">
+            <span className="relative bottom-0 text-center text-sm text-gray-900 lg:bottom-3">
               Made by{" "}
               <a
                 href="https://dub.sh/vldzn.me"
@@ -235,7 +255,7 @@ export default function Home() {
                 className="transition-colors hover:text-blue-600 hover:underline"
                 target="_blank"
               >
-                Got feedback?
+                Share your feedback
               </a>
             </span>
           </div>
