@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { BroadcastChannel } from "broadcast-channel";
 
@@ -16,13 +16,13 @@ interface TabMessage {
  * This is useful to avoid conflicts when the user has multiple tabs open.
  */
 export function TabMonitor() {
-  useEffect(() => {
-    const tabId = crypto.randomUUID();
-    let isOriginalTab = true;
-    let checkInterval: NodeJS.Timeout;
-    let lastResponseTime = 0;
-    let activeToastId: string | number | undefined;
+  const tabIdRef = useRef(crypto.randomUUID());
+  const isOriginalTabRef = useRef(true);
+  const checkIntervalRef = useRef<NodeJS.Timeout>();
+  const lastResponseTimeRef = useRef(0);
+  const activeToastIdRef = useRef<string | number>();
 
+  useEffect(() => {
     // Create a new channel using broadcast-channel
     const channel = new BroadcastChannel("tab_monitor", {
       type: "localstorage",
@@ -40,14 +40,17 @@ export function TabMonitor() {
       broadcastMessage({
         type: "TAB_CHECK",
         timestamp: Date.now(),
-        tabId,
+        tabId: tabIdRef.current,
       });
 
-      if (!isOriginalTab && Date.now() - lastResponseTime > 2000) {
-        isOriginalTab = true;
-        if (activeToastId) {
+      if (
+        !isOriginalTabRef.current &&
+        Date.now() - lastResponseTimeRef.current > 2000
+      ) {
+        isOriginalTabRef.current = true;
+        if (activeToastIdRef.current) {
           toast.success("You can now use this tab", {
-            id: activeToastId,
+            id: activeToastIdRef.current,
             description: "Other duplicate tabs have been closed.",
             duration: 5000,
           });
@@ -56,21 +59,21 @@ export function TabMonitor() {
     }
 
     function handleMessage(message: TabMessage) {
-      if (message.tabId === tabId) return;
+      if (message.tabId === tabIdRef.current) return;
 
       if (message.type === "TAB_CHECK") {
         broadcastMessage({
           type: "TAB_RESPONSE",
           timestamp: Date.now(),
-          tabId,
+          tabId: tabIdRef.current,
         });
       }
 
       if (message.type === "TAB_RESPONSE") {
-        lastResponseTime = Date.now();
+        lastResponseTimeRef.current = Date.now();
 
-        if (isOriginalTab) {
-          activeToastId = toast.warning(
+        if (isOriginalTabRef.current) {
+          activeToastIdRef.current = toast.warning(
             "This page is already open in another tab",
             {
               description:
@@ -79,7 +82,7 @@ export function TabMonitor() {
               closeButton: true,
             }
           );
-          isOriginalTab = false;
+          isOriginalTabRef.current = false;
         }
       }
     }
@@ -87,12 +90,11 @@ export function TabMonitor() {
     // Set up message listener
     channel.onmessage = handleMessage;
 
-    // eslint-disable-next-line prefer-const
-    checkInterval = setInterval(broadcastCheck, 1000);
+    checkIntervalRef.current = setInterval(broadcastCheck, 1000);
     broadcastCheck();
 
     return () => {
-      clearInterval(checkInterval);
+      if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       channel.close();
     };
   }, []);
