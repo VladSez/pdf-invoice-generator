@@ -16,22 +16,46 @@ interface TabMessage {
  */
 export function TabMonitor() {
   useEffect(() => {
-    // Generate unique ID for this tab
     const tabId = crypto.randomUUID();
-    const channel = new BroadcastChannel("tab_monitor");
     let isOriginalTab = true;
     let checkInterval: NodeJS.Timeout;
     let lastResponseTime = 0;
     let activeToastId: string | number | undefined;
 
+    // Check if BroadcastChannel is supported
+    const isBroadcastSupported = "BroadcastChannel" in window;
+    const channel = isBroadcastSupported
+      ? new BroadcastChannel("tab_monitor")
+      : null;
+
+    function broadcastMessage(message: TabMessage) {
+      if (isBroadcastSupported) {
+        channel?.postMessage(message);
+      } else {
+        // Fallback: Use localStorage
+        localStorage.setItem(
+          "tab_monitor_message",
+          JSON.stringify({
+            ...message,
+            timestamp: Date.now(),
+          })
+        );
+        // Trigger storage event in other tabs
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "tab_monitor_message",
+          })
+        );
+      }
+    }
+
     function broadcastCheck() {
-      channel.postMessage({
+      broadcastMessage({
         type: "TAB_CHECK",
         timestamp: Date.now(),
         tabId,
-      } as TabMessage);
+      });
 
-      // If we haven't received a response in 2 seconds, assume other tabs are closed
       if (!isOriginalTab && Date.now() - lastResponseTime > 2000) {
         isOriginalTab = true;
         if (activeToastId) {
@@ -44,26 +68,20 @@ export function TabMonitor() {
       }
     }
 
-    function handleMessage(event: MessageEvent<TabMessage>) {
-      const { data } = event;
+    function handleMessage(message: TabMessage) {
+      if (message.tabId === tabId) return;
 
-      if (data.type === "TAB_CHECK" && data.tabId !== tabId) {
-        // When we receive a check message from another tab,
-        // respond back to let them know this tab exists
-        channel.postMessage({
+      if (message.type === "TAB_CHECK") {
+        broadcastMessage({
           type: "TAB_RESPONSE",
           timestamp: Date.now(),
           tabId,
-        } as TabMessage);
+        });
       }
 
-      if (data.type === "TAB_RESPONSE" && data.tabId !== tabId) {
-        // When we receive a response from another tab:
-        // 1. Update the last response time to track active tabs
+      if (message.type === "TAB_RESPONSE") {
         lastResponseTime = Date.now();
 
-        // 2. If this was previously considered the original tab,
-        // show a warning toast that this is actually a duplicate
         if (isOriginalTab) {
           activeToastId = toast.warning(
             "This page is already open in another tab",
@@ -74,26 +92,41 @@ export function TabMonitor() {
               closeButton: true,
             }
           );
-          // 3. Mark this tab as non-original
           isOriginalTab = false;
         }
       }
     }
 
-    // Start monitoring
-    channel.addEventListener("message", handleMessage);
+    // Handle messages based on browser support
+    if (isBroadcastSupported) {
+      channel?.addEventListener("message", (event) =>
+        handleMessage(event.data)
+      );
+    } else {
+      window.addEventListener("storage", (event) => {
+        if (event.key === "tab_monitor_message") {
+          const message = JSON.parse(event.newValue || "{}") as TabMessage;
+          handleMessage(message);
+        }
+      });
+    }
 
     // eslint-disable-next-line prefer-const
     checkInterval = setInterval(broadcastCheck, 1000);
     broadcastCheck();
 
     return () => {
-      channel.removeEventListener("message", handleMessage);
-      channel.close();
+      if (isBroadcastSupported) {
+        // @ts-expect-error - TODO: fix this
+        channel?.removeEventListener("message", handleMessage);
+        channel?.close();
+      } else {
+        // @ts-expect-error - TODO: fix this
+        window.removeEventListener("storage", handleMessage);
+      }
       clearInterval(checkInterval);
     };
   }, []);
 
-  // Return null as this is a utility component
   return null;
 }
