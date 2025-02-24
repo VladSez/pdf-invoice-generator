@@ -87,6 +87,7 @@ export function TabMonitor() {
     // Set up message listener
     channel.onmessage = handleMessage;
 
+    // eslint-disable-next-line prefer-const
     checkInterval = setInterval(broadcastCheck, 1000);
     broadcastCheck();
 
