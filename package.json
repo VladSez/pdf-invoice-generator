@@ -24,6 +24,7 @@
     "@radix-ui/react-tooltip": "1.1.8",
     "@react-pdf/layout": "4.2.2",
     "@react-pdf/renderer": "4.2.1",
+    "broadcast-channel": "7.0.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "dayjs": "1.11.13",

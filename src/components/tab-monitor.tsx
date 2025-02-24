@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { BroadcastChannel } from "broadcast-channel";
 
 interface TabMessage {
   type: "TAB_CHECK" | "TAB_RESPONSE";
@@ -22,31 +23,17 @@ export function TabMonitor() {
     let lastResponseTime = 0;
     let activeToastId: string | number | undefined;
 
-    // Check if BroadcastChannel is supported
-    const isBroadcastSupported = "BroadcastChannel" in window;
-    const channel = isBroadcastSupported
-      ? new BroadcastChannel("tab_monitor")
-      : null;
+    // Create a new channel using broadcast-channel
+    const channel = new BroadcastChannel("tab_monitor", {
+      type: "localstorage",
+      webWorkerSupport: false,
+    });
 
     function broadcastMessage(message: TabMessage) {
-      if (isBroadcastSupported) {
-        channel?.postMessage(message);
-      } else {
-        // Fallback: Use localStorage
-        localStorage.setItem(
-          "tab_monitor_message",
-          JSON.stringify({
-            ...message,
-            timestamp: Date.now(),
-          })
-        );
-        // Trigger storage event in other tabs
-        window.dispatchEvent(
-          new StorageEvent("storage", {
-            key: "tab_monitor_message",
-          })
-        );
-      }
+      channel.postMessage({
+        ...message,
+        timestamp: Date.now(),
+      });
     }
 
     function broadcastCheck() {
@@ -97,34 +84,15 @@ export function TabMonitor() {
       }
     }
 
-    // Handle messages based on browser support
-    if (isBroadcastSupported) {
-      channel?.addEventListener("message", (event) =>
-        handleMessage(event.data)
-      );
-    } else {
-      window.addEventListener("storage", (event) => {
-        if (event.key === "tab_monitor_message") {
-          const message = JSON.parse(event.newValue || "{}") as TabMessage;
-          handleMessage(message);
-        }
-      });
-    }
+    // Set up message listener
+    channel.onmessage = handleMessage;
 
-    // eslint-disable-next-line prefer-const
     checkInterval = setInterval(broadcastCheck, 1000);
     broadcastCheck();
 
     return () => {
-      if (isBroadcastSupported) {
-        // @ts-expect-error - TODO: fix this
-        channel?.removeEventListener("message", handleMessage);
-        channel?.close();
-      } else {
-        // @ts-expect-error - TODO: fix this
-        window.removeEventListener("storage", handleMessage);
-      }
       clearInterval(checkInterval);
+      channel.close();
     };
   }, []);
 
