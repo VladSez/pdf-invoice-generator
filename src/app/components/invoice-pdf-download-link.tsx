@@ -101,7 +101,7 @@ export function InvoicePDFDownloadLink({
                 duration: Infinity, // Show indefinitely until the user closes it
                 closeButton: true,
               });
-            }, 3500);
+            }, 3000);
           }
         }}
         className={cn(
