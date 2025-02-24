@@ -25,7 +25,7 @@ export function TabMonitor() {
   useEffect(() => {
     // Create a new channel using broadcast-channel
     const channel = new BroadcastChannel("tab_monitor", {
-      type: "localstorage",
+      type: "idb",
       webWorkerSupport: false,
     });
 
