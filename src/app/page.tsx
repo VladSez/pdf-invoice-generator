@@ -21,6 +21,7 @@ import { InvoicePdfTemplate } from "./components/invoice-pdf-template";
 import { RegenerateInvoiceButton } from "./components/regenerate-invoice-button";
 import { INITIAL_INVOICE_DATA } from "./constants";
 import { useOpenPanel } from "@openpanel/nextjs";
+import { useTabMonitor } from "@/components/new-monitor";
 
 const InvoicePDFViewer = dynamic(
   () =>
@@ -46,6 +47,11 @@ export default function Home() {
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const openPanel = useOpenPanel();
+
+  // This is a custom hook that monitors the number of tabs that are open
+  // and displays a warning if there are multiple tabs open.
+  // This is to prevent multiple instances of the app from being open at the same time.
+  useTabMonitor();
 
   const [invoiceDataState, setInvoiceDataState] = useState<InvoiceData | null>(
     null

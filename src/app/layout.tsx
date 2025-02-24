@@ -4,7 +4,6 @@ import { OpenPanelComponent } from "@openpanel/nextjs";
 
 import "./globals.css";
 import { Toaster } from "sonner";
-import { TabMonitor } from "../components/tab-monitor";
 
 export const viewport: Viewport = {
   initialScale: 1, // Sets the default zoom level to 1 (100%)
@@ -68,7 +67,6 @@ export default function RootLayout({
         )}
         {/* https://sonner.emilkowal.ski/ */}
         <Toaster visibleToasts={1} richColors />
-        <TabMonitor />
       </body>
     </html>
   );
