@@ -3,11 +3,7 @@ import { toast } from "sonner";
 
 const NUM_OF_OPEN_TABS_KEY = "EASY_INVOICE_PDF_NUM_OF_OPEN_TABS";
 
-const isDesktop =
-  typeof window !== "undefined" &&
-  window.matchMedia("(min-width: 1024px)").matches;
-
-const CHECK_INTERVAL = isDesktop ? 1000 : 3000;
+const CHECK_INTERVAL = 1500;
 const TOAST_ID = "EASY_INVOICE_PDF_TAB_MONITOR_TOAST";
 const WARNING_STATE_KEY = "EASY_INVOICE_PDF_TAB_MONITOR_WARNING_STATE";
 
@@ -47,8 +43,10 @@ export function useTabMonitor() {
             closeButton: true,
           });
         } else if (tabCount === 1 && hasShownWarning) {
+          // dismiss the warning toast
+          toast.dismiss(TOAST_ID);
+
           toast.success("Using a single tab", {
-            id: TOAST_ID,
             description: "Other duplicate tabs have been closed.",
             duration: 5000,
           });
