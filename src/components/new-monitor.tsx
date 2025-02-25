@@ -8,7 +8,8 @@ const isDesktop =
   window.matchMedia("(min-width: 1024px)").matches;
 
 const CHECK_INTERVAL = isDesktop ? 1000 : 3000;
-const TOAST_ID = "tab-monitor-toast";
+const TOAST_ID = "EASY_INVOICE_PDF_TAB_MONITOR_TOAST";
+const WARNING_STATE_KEY = "EASY_INVOICE_PDF_TAB_MONITOR_WARNING_STATE";
 
 /**
  * This is a custom hook that monitors the number of tabs that are open
@@ -17,8 +18,6 @@ const TOAST_ID = "tab-monitor-toast";
  */
 export function useTabMonitor() {
   useEffect(() => {
-    let hasShownWarning = false;
-
     // Initialize tab count
     const initializeTabCount = () => {
       const numOfOpenTabs = localStorage.getItem(NUM_OF_OPEN_TABS_KEY);
@@ -31,12 +30,15 @@ export function useTabMonitor() {
     // Update tab count
     const updateTabCount = () => {
       const numOfOpenTabs = localStorage.getItem(NUM_OF_OPEN_TABS_KEY);
+      const hasShownWarning =
+        localStorage.getItem(WARNING_STATE_KEY) === "true";
+
       if (!numOfOpenTabs || parseInt(numOfOpenTabs) < 1) {
         initializeTabCount();
       } else {
         const tabCount = parseInt(numOfOpenTabs);
         if (tabCount > 1) {
-          hasShownWarning = true;
+          localStorage.setItem(WARNING_STATE_KEY, "true");
 
           toast.warning(`This page is already open in another tab`, {
             id: TOAST_ID,
@@ -51,7 +53,7 @@ export function useTabMonitor() {
             duration: 5000,
           });
 
-          hasShownWarning = false;
+          localStorage.setItem(WARNING_STATE_KEY, "false");
         }
       }
     };
