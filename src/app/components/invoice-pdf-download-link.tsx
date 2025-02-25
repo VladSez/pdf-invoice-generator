@@ -45,9 +45,35 @@ export function InvoicePDFDownloadLink({
 
   useEffect(() => {
     if (error) {
-      toast.error("Error generating document link");
+      toast.error(
+        <span>
+          Error generating document link. Please contact support{" "}
+          <a
+            href="mailto:vladsazon27@gmail.com"
+            className="underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            here
+          </a>{" "}
+          or fill a bug report{" "}
+          <a
+            href="https://pdfinvoicegenerator.userjot.com/board/bugs"
+            className="underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            here
+          </a>
+        </span>,
+        {
+          duration: 10000,
+        }
+      );
+
+      openPanel.track("error_generating_document_link");
     }
-  }, [error]);
+  }, [error, openPanel]);
 
   return (
     <>
@@ -57,6 +83,25 @@ export function InvoicePDFDownloadLink({
         onClick={() => {
           if (!isLoading && url) {
             openPanel.track("download_invoice");
+
+            // Show donation toast after 3 seconds
+            setTimeout(() => {
+              toast("Consider Supporting Us!", {
+                description:
+                  "If you find this tool helpful, please consider making a small donation to support our work.",
+                action: {
+                  label: "Donate",
+                  onClick: () =>
+                    window.open(
+                      "https://dub.sh/easyinvoice-donate",
+                      "_blank",
+                      "noopener,noreferrer"
+                    ),
+                },
+                duration: Infinity, // Show indefinitely until the user closes it
+                closeButton: true,
+              });
+            }, 3000);
           }
         }}
         className={cn(
