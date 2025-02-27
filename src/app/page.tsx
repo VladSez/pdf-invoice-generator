@@ -21,6 +21,8 @@ import { InvoicePdfTemplate } from "./components/invoice-pdf-template";
 import { RegenerateInvoiceButton } from "./components/regenerate-invoice-button";
 import { INITIAL_INVOICE_DATA } from "./constants";
 import { useOpenPanel } from "@openpanel/nextjs";
+import { isLocalStorageAvailable } from "@/lib/check-local-storage";
+import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
 
 const InvoicePDFViewer = dynamic(
   () =>
@@ -53,11 +55,14 @@ export default function Home() {
 
   // Initialize data from URL or localStorage on mount
   useEffect(() => {
-    const urlData = searchParams.get("data");
+    const compressedInvoiceDataInUrl = searchParams.get("data");
 
-    if (urlData) {
+    // first try to load from url
+    if (compressedInvoiceDataInUrl) {
       try {
-        const decompressed = decompressFromEncodedURIComponent(urlData);
+        const decompressed = decompressFromEncodedURIComponent(
+          compressedInvoiceDataInUrl
+        );
         const parsed = JSON.parse(decompressed);
         const validated = invoiceSchema.parse(parsed);
 
@@ -95,7 +100,8 @@ export default function Home() {
 
   // Save to localStorage whenever data changes on form update
   useEffect(() => {
-    if (invoiceDataState) {
+    // Only save to localStorage if it's available
+    if (invoiceDataState && isLocalStorageAvailable) {
       try {
         const newInvoiceDataValidated = invoiceSchema.parse(invoiceDataState);
 
@@ -168,10 +174,14 @@ export default function Home() {
         const newFullUrl = `${window.location.origin}/?data=${compressed}`;
         await navigator.clipboard.writeText(newFullUrl);
 
-        toast.success("URL copied to clipboard!");
+        toast.success("Invoice link copied to clipboard!", {
+          description:
+            "Share this link to let others view and edit this invoice",
+        });
 
         // analytics track event
         openPanel.track("share_invoice_link");
+        umamiTrackEvent("share_invoice_link");
       } catch (error) {
         console.error("Failed to share invoice:", error);
         toast.error("Failed to generate shareable link");
@@ -197,17 +207,22 @@ export default function Home() {
               <Button
                 className="w-full bg-blue-500 text-white transition-all hover:scale-105 hover:bg-blue-600 hover:no-underline lg:w-auto"
                 _variant="link"
+                onClick={() => {
+                  window.open(
+                    "https://dub.sh/easyinvoice-donate",
+                    "_blank",
+                    "noopener noreferrer"
+                  );
+
+                  // analytics track event
+                  openPanel.track("donate_to_project_button_clicked_header");
+                  umamiTrackEvent("donate_to_project_button_clicked_header");
+                }}
               >
-                <a
-                  href="https://dub.sh/easyinvoice-donate"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span className="animate-heartbeat">❤️</span>
-                    <span>Support Project</span>
-                  </span>
-                </a>
+                <span className="flex items-center space-x-1.5">
+                  <span className="animate-heartbeat">❤️</span>
+                  <span>Support Project</span>
+                </span>
               </Button>
               <CustomTooltip
                 trigger={

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { OpenPanelComponent } from "@openpanel/nextjs";
+import Script from "next/script";
 
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -67,6 +68,14 @@ export default function RootLayout({
         )}
         {/* https://sonner.emilkowal.ski/ */}
         <Toaster visibleToasts={1} richColors />
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            // we proxy umami check next.config.mjs rewrites
+            src="/stats/script.js"
+            data-website-id="1914352c-5ebb-4806-bfc3-f494712bb4a4"
+            defer
+          />
+        )}
       </body>
     </html>
   );

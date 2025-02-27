@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
 import { useOpenPanel } from "@openpanel/nextjs";
 import { isLocalStorageAvailable } from "@/lib/check-local-storage";
+import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
 
 export const SELLERS_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_SELLERS";
 
@@ -118,6 +119,7 @@ export function SellerManagement({
 
       // analytics track event
       openPanel.track("add_seller_success");
+      umamiTrackEvent("add_seller_success");
     } catch (error) {
       console.error("Failed to add seller:", error);
 
@@ -151,6 +153,7 @@ export function SellerManagement({
 
       // analytics track event
       openPanel.track("edit_seller_success");
+      umamiTrackEvent("edit_seller_success");
     } catch (error) {
       console.error("Failed to edit seller:", error);
 
@@ -180,6 +183,7 @@ export function SellerManagement({
 
     // analytics track event
     openPanel.track("change_seller");
+    umamiTrackEvent("change_seller");
   };
 
   const handleDeleteSeller = () => {
@@ -209,6 +213,7 @@ export function SellerManagement({
 
       // analytics track event
       openPanel.track("delete_seller_success");
+      umamiTrackEvent("delete_seller_success");
     } catch (error) {
       console.error("Failed to delete seller:", error);
 

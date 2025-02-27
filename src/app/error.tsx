@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { PDF_DATA_LOCAL_STORAGE_KEY } from "./components/invoice-form";
 import { INITIAL_INVOICE_DATA } from "./constants";
 import { useOpenPanel } from "@openpanel/nextjs";
+import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
 
 export default function Error({
   error,
@@ -52,7 +53,9 @@ export default function Error({
             // Attempt to recover by trying to re-render the segment
             () => {
               reset();
+
               openPanel.track("error_button_try_again_clicked");
+              umamiTrackEvent("error_button_try_again_clicked");
             }
           }
           _variant="outline"
@@ -77,6 +80,7 @@ export default function Error({
               });
 
               openPanel.track("error_button_start_from_scratch_clicked");
+              umamiTrackEvent("error_button_start_from_scratch_clicked");
             } catch (error) {
               console.error(error);
 

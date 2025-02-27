@@ -37,6 +37,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
 
 export const PDF_DATA_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_DATA";
 export const PDF_DATA_FORM_ID = "pdfInvoiceForm";
@@ -256,6 +257,7 @@ export function InvoiceForm({
 
       // analytics track event
       openPanel.track("remove_invoice_item");
+      umamiTrackEvent("remove_invoice_item");
 
       // Manually trigger form submission after removal
       const currentFormData = watch();

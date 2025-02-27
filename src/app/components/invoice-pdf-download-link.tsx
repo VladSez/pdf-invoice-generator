@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { LOADING_BUTTON_TEXT, LOADING_BUTTON_TIMEOUT } from "./invoice-form";
 import { toast } from "sonner";
 import { useOpenPanel } from "@openpanel/nextjs";
+import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
 
 export function InvoicePDFDownloadLink({
   invoiceData,
@@ -72,6 +73,7 @@ export function InvoicePDFDownloadLink({
       );
 
       openPanel.track("error_generating_document_link");
+      umamiTrackEvent("error_generating_document_link");
     }
   }, [error, openPanel]);
 
@@ -83,6 +85,7 @@ export function InvoicePDFDownloadLink({
         onClick={() => {
           if (!isLoading && url) {
             openPanel.track("download_invoice");
+            umamiTrackEvent("download_invoice");
 
             // Show donation toast after 3 seconds
             setTimeout(() => {
@@ -91,12 +94,16 @@ export function InvoicePDFDownloadLink({
                   "If you find this tool helpful, please consider making a small donation to support our work.",
                 action: {
                   label: "Donate",
-                  onClick: () =>
+                  onClick: () => {
                     window.open(
                       "https://dub.sh/easyinvoice-donate",
                       "_blank",
                       "noopener,noreferrer"
-                    ),
+                    );
+
+                    openPanel.track("donate_button_clicked_download_pdf_toast");
+                    umamiTrackEvent("donate_button_clicked_download_pdf_toast");
+                  },
                 },
                 duration: Infinity, // Show indefinitely until the user closes it
                 closeButton: true,
