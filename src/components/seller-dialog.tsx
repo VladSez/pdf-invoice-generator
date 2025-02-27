@@ -395,7 +395,21 @@ export function SellerDialog({
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit" form={SELLER_FORM_ID}>
+          <Button
+            // we don't want to use type="submit" because it will cause unnecessary re-render of the invoice pdf preview
+            type="button"
+            onClick={async () => {
+              // we manually trigger the form validation and submit the form
+
+              // validate the form
+              const isValid = await form.trigger();
+              if (!isValid) return;
+
+              // submit the form
+              onSubmit(form.getValues());
+            }}
+            form={SELLER_FORM_ID}
+          >
             Save Seller
           </Button>
         </DialogFooter>
