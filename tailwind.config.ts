@@ -37,19 +37,20 @@ const config: Config = {
         },
         heartbeat: {
           "0%": { transform: "scale(1)" },
-          "25%": { transform: "scale(1.3)" },
+          "25%": { transform: "scale(1.4)" },
           "50%": { transform: "scale(1)" },
-          "75%": { transform: "scale(1.3)" },
+          "75%": { transform: "scale(1.4)" },
           "100%": { transform: "scale(1)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        heartbeat: "heartbeat 3s ease-in-out infinite 30s", // 3s = duration of animation, infinite = repeat forever, 30s = delay before starting animation
+        heartbeat: "heartbeat 3s ease-in-out infinite 25s", // 3s = duration of animation, infinite = repeat forever, 25s = delay before starting animation
       },
     },
   },
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   plugins: [require("tailwindcss-animate")],
 };
 export default config;

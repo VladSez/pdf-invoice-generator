@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
 import { useOpenPanel } from "@openpanel/nextjs";
+import { isLocalStorageAvailable } from "@/lib/check-local-storage";
+import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
 
 export const SELLERS_LOCAL_STORAGE_KEY = "EASY_INVOICE_PDF_SELLERS";
 
@@ -40,7 +42,10 @@ export function SellerManagement({
 }) {
   const [isSellerDialogOpen, setIsSellerDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [sellers, setSellers] = useState<SellerData[]>([]);
+
+  const [sellersSelectOptions, setSellersSelectOptions] = useState<
+    SellerData[]
+  >([]);
   const [selectedSellerIndex, setSelectedSellerIndex] = useState("");
   const [editingSeller, setEditingSeller] = useState<SellerData | null>(null);
 
@@ -70,7 +75,7 @@ export function SellerManagement({
         }
       );
 
-      setSellers(validationResult.data);
+      setSellersSelectOptions(validationResult.data);
       setSelectedSellerIndex(selectedSeller?.id ?? "");
     } catch (error) {
       console.error("Failed to load sellers:", error);
@@ -91,7 +96,7 @@ export function SellerManagement({
         id: Date.now().toString(),
       };
 
-      const newSellers = [...sellers, newSellerWithId];
+      const newSellers = [...sellersSelectOptions, newSellerWithId];
 
       // Save to localStorage
       localStorage.setItem(
@@ -100,7 +105,7 @@ export function SellerManagement({
       );
 
       // Update the sellers state
-      setSellers(newSellers);
+      setSellersSelectOptions(newSellers);
 
       // Apply the new seller to the invoice if the user wants to, otherwise just add it to the list and use it later if needed
       if (shouldApplyNewSellerToInvoice) {
@@ -114,6 +119,7 @@ export function SellerManagement({
 
       // analytics track event
       openPanel.track("add_seller_success");
+      umamiTrackEvent("add_seller_success");
     } catch (error) {
       console.error("Failed to add seller:", error);
 
@@ -126,19 +132,19 @@ export function SellerManagement({
   // Update sellers when edited
   const handleSellerEdit = (editedSeller: SellerData) => {
     try {
-      setSellers((prevSellers) => {
-        const updatedSellers = prevSellers.map((seller) =>
-          seller.id === editedSeller.id ? editedSeller : seller
-        );
+      const updatedSellers = sellersSelectOptions.map((seller) =>
+        seller.id === editedSeller.id ? editedSeller : seller
+      );
 
-        localStorage.setItem(
-          SELLERS_LOCAL_STORAGE_KEY,
-          JSON.stringify(updatedSellers)
-        );
-        return updatedSellers;
-      });
+      localStorage.setItem(
+        SELLERS_LOCAL_STORAGE_KEY,
+        JSON.stringify(updatedSellers)
+      );
 
+      setSellersSelectOptions(updatedSellers);
       setValue("seller", editedSeller);
+
+      // end edit mode
       setEditingSeller(null);
 
       toast.success("Seller updated successfully", {
@@ -147,6 +153,7 @@ export function SellerManagement({
 
       // analytics track event
       openPanel.track("edit_seller_success");
+      umamiTrackEvent("edit_seller_success");
     } catch (error) {
       console.error("Failed to edit seller:", error);
 
@@ -161,7 +168,9 @@ export function SellerManagement({
 
     if (id) {
       setSelectedSellerIndex(id);
-      const selectedSeller = sellers.find((seller) => seller.id === id);
+      const selectedSeller = sellersSelectOptions.find(
+        (seller) => seller.id === id
+      );
 
       if (selectedSeller) {
         setValue("seller", selectedSeller);
@@ -174,11 +183,12 @@ export function SellerManagement({
 
     // analytics track event
     openPanel.track("change_seller");
+    umamiTrackEvent("change_seller");
   };
 
   const handleDeleteSeller = () => {
     try {
-      setSellers((prevSellers) => {
+      setSellersSelectOptions((prevSellers) => {
         const updatedSellers = prevSellers.filter(
           (seller) => seller.id !== selectedSellerIndex
         );
@@ -203,6 +213,7 @@ export function SellerManagement({
 
       // analytics track event
       openPanel.track("delete_seller_success");
+      umamiTrackEvent("delete_seller_success");
     } catch (error) {
       console.error("Failed to delete seller:", error);
 
@@ -212,14 +223,14 @@ export function SellerManagement({
     }
   };
 
-  const activeSeller = sellers.find(
+  const activeSeller = sellersSelectOptions.find(
     (seller) => seller.id === selectedSellerIndex
   );
 
   return (
     <>
       <div className="flex flex-col gap-2">
-        {sellers.length > 0 ? (
+        {sellersSelectOptions.length > 0 ? (
           <div className="space-y-1">
             <div className="flex items-center gap-1">
               <Label htmlFor={sellerSelectId} className="">
@@ -238,7 +249,7 @@ export function SellerManagement({
                 title={activeSeller?.name}
               >
                 <option value="">No seller selected (default)</option>
-                {sellers.map((seller) => (
+                {sellersSelectOptions.map((seller) => (
                   <option key={seller.id} value={seller.id}>
                     {seller.name}
                   </option>
@@ -255,6 +266,7 @@ export function SellerManagement({
                         onClick={() => {
                           if (activeSeller) {
                             setEditingSeller(activeSeller);
+                            setIsSellerDialogOpen(true);
                           }
                         }}
                         className="h-8 px-2"
@@ -291,19 +303,31 @@ export function SellerManagement({
               _variant="outline"
               _size="sm"
               onClick={() => {
-                setIsSellerDialogOpen(true);
+                if (isLocalStorageAvailable) {
+                  setIsSellerDialogOpen(true);
+                }
               }}
+              aria-disabled={!isLocalStorageAvailable}
+              className={cn(
+                !isLocalStorageAvailable && "cursor-not-allowed opacity-40"
+              )}
             >
               New Seller
               <Plus className="ml-1 h-3 w-3" />
             </Button>
           }
-          content="You can save multiple sellers to use them later"
+          content={
+            isLocalStorageAvailable
+              ? "You can save multiple sellers to use them later"
+              : "Local storage is not available in your browser. Please enable it or try another browser"
+          }
         />
       </div>
 
       <SellerDialog
-        isOpen={isSellerDialogOpen || isEditMode}
+        // we need to rerender the dialog when the editingSeller changes
+        key={editingSeller?.id}
+        isOpen={isSellerDialogOpen}
         onClose={() => {
           setIsSellerDialogOpen(false);
           setEditingSeller(null);
@@ -311,7 +335,6 @@ export function SellerManagement({
         handleSellerAdd={handleSellerAdd}
         handleSellerEdit={handleSellerEdit}
         initialData={editingSeller}
-        key={editingSeller?.id}
         isEditMode={isEditMode}
       />
 

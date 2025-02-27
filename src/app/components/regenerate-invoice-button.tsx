@@ -13,6 +13,8 @@ import type { InvoiceData } from "../schema";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export function RegenerateInvoiceButton({
   invoiceData,
@@ -23,6 +25,7 @@ export function RegenerateInvoiceButton({
     document: <InvoicePdfTemplate invoiceData={invoiceData} />,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const openPanel = useOpenPanel();
 
   useEffect(() => {
     if (pdfLoading) {
@@ -51,6 +54,11 @@ export function RegenerateInvoiceButton({
           _variant="outline"
           className="mt-2 w-full"
           disabled={isLoading}
+          onClick={() => {
+            // analytics events
+            openPanel.track("regenerate_invoice");
+            umamiTrackEvent("regenerate_invoice");
+          }}
         >
           {isLoading ? (
             <span className="inline-flex items-center">
