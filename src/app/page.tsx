@@ -23,6 +23,8 @@ import { INITIAL_INVOICE_DATA } from "./constants";
 import { useOpenPanel } from "@openpanel/nextjs";
 import { isLocalStorageAvailable } from "@/lib/check-local-storage";
 import { umamiTrackEvent } from "@/lib/umami-analytics-track-event";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { FileTextIcon, PencilIcon } from "lucide-react";
 
 const InvoicePDFViewer = dynamic(
   () =>
@@ -42,6 +44,11 @@ const InvoicePDFViewer = dynamic(
     ),
   }
 );
+
+const TABS_VALUES = ["form", "preview"] as const;
+
+const TAB_FORM = TABS_VALUES[0];
+const TAB_PREVIEW = TABS_VALUES[1];
 
 export default function Home() {
   const router = useRouter();
@@ -276,25 +283,59 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-            <div className="lg:col-span-4">
-              <div className="h-[400px] overflow-auto p-3 lg:h-[580px] lg:pl-0">
+            {/* Mobile View with Tabs */}
+            <div className="block w-full lg:hidden">
+              <Tabs defaultValue={TAB_FORM} className="w-full">
+                <TabsList className="w-full">
+                  <TabsTrigger value={TAB_FORM} className="flex-1">
+                    <span className="flex items-center gap-1">
+                      <PencilIcon className="h-4 w-4" />
+                      Edit Invoice
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value={TAB_PREVIEW} className="flex-1">
+                    <span className="flex items-center gap-1">
+                      <FileTextIcon className="h-4 w-4" />
+                      Preview PDF
+                    </span>
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value={TAB_FORM} className="mt-4">
+                  <div className="h-[400px] overflow-auto">
+                    <InvoiceForm
+                      invoiceData={invoiceDataState}
+                      onInvoiceDataChange={handleInvoiceDataChange}
+                    />
+                  </div>
+                </TabsContent>
+                <TabsContent value={TAB_PREVIEW} className="mt-4">
+                  <div className="h-[580px] w-full">
+                    <InvoicePDFViewer>
+                      <InvoicePdfTemplate invoiceData={invoiceDataState} />
+                    </InvoicePDFViewer>
+                  </div>
+                </TabsContent>
+                {/* Action buttons visible in both tabs */}
+                <div className="sticky bottom-0 mt-4 flex flex-col gap-3 bg-white pb-2">
+                  <RegenerateInvoiceButton invoiceData={invoiceDataState} />
+                  <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
+                </div>
+              </Tabs>
+            </div>
+
+            {/* Desktop View - Side by Side */}
+            <div className="hidden lg:col-span-4 lg:block">
+              <div className="h-[580px] overflow-auto pl-0">
                 <InvoiceForm
                   invoiceData={invoiceDataState}
                   onInvoiceDataChange={handleInvoiceDataChange}
                 />
               </div>
-
               <div className="flex flex-col gap-3">
                 <RegenerateInvoiceButton invoiceData={invoiceDataState} />
-                {/* We show the pdf download link here only on mobile/tables */}
-                {isDesktop ? null : (
-                  <InvoicePDFDownloadLink invoiceData={invoiceDataState} />
-                )}
               </div>
-
-              <hr className="my-2 block w-full lg:hidden" />
             </div>
-            <div className="h-[580px] w-full max-w-full lg:col-span-8">
+            <div className="hidden h-[580px] w-full max-w-full lg:col-span-8 lg:block">
               <InvoicePDFViewer>
                 <InvoicePdfTemplate invoiceData={invoiceDataState} />
               </InvoicePDFViewer>
