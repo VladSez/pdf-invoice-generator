@@ -45,11 +45,17 @@ export const DEBOUNCE_TIMEOUT = 500;
 export const LOADING_BUTTON_TIMEOUT = 400;
 export const LOADING_BUTTON_TEXT = "Generating Document...";
 
-const DEFAULT_ACCORDION_VALUES = ["seller", "buyer", "invoiceItems"] as const;
+const DEFAULT_ACCORDION_VALUES = [
+  "general",
+  "seller",
+  "buyer",
+  "invoiceItems",
+] as const;
 
-const ACCORDION_SELLER = DEFAULT_ACCORDION_VALUES[0];
-const ACCORDION_BUYER = DEFAULT_ACCORDION_VALUES[1];
-const ACCORDION_ITEMS = DEFAULT_ACCORDION_VALUES[2];
+const ACCORDION_GENERAL = DEFAULT_ACCORDION_VALUES[0];
+const ACCORDION_SELLER = DEFAULT_ACCORDION_VALUES[1];
+const ACCORDION_BUYER = DEFAULT_ACCORDION_VALUES[2];
+const ACCORDION_ITEMS = DEFAULT_ACCORDION_VALUES[3];
 
 type NonReadonly<T> = {
   -readonly [P in keyof T]: T[P] extends object ? NonReadonly<T[P]> : T[P];
@@ -334,273 +340,8 @@ export function InvoiceForm({
         className="mb-4 space-y-3.5"
         id={PDF_DATA_FORM_ID}
       >
-        {/* Language PDF Select */}
-        <div>
-          <Label htmlFor="language" className="mb-1">
-            Invoice PDF Language
-          </Label>
-          <Controller
-            name="language"
-            control={control}
-            render={({ field }) => (
-              <SelectNative {...field} id="language" className="block">
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <option key={lang} value={lang}>
-                    {lang === "en" ? "English" : "Polish"}
-                  </option>
-                ))}
-              </SelectNative>
-            )}
-          />
-          {errors.language ? (
-            <ErrorMessage>{errors.language.message}</ErrorMessage>
-          ) : (
-            <InputHelperMessage>
-              Select the language of the invoice
-            </InputHelperMessage>
-          )}
-        </div>
-
-        {/* Currency Select */}
-        <div>
-          <Label htmlFor="currency" className="mb-1">
-            Currency
-          </Label>
-          <Controller
-            name="currency"
-            control={control}
-            render={({ field }) => {
-              return (
-                <SelectNative {...field} id="currency" className="block">
-                  {SUPPORTED_CURRENCIES.map((currency) => {
-                    const currencySymbol = CURRENCY_SYMBOLS[currency] || null;
-
-                    return (
-                      <option
-                        key={currency}
-                        value={currency}
-                        defaultValue={SUPPORTED_CURRENCIES[0]}
-                      >
-                        {currency} {currencySymbol}
-                      </option>
-                    );
-                  })}
-                </SelectNative>
-              );
-            }}
-          />
-
-          {errors.currency ? (
-            <ErrorMessage>{errors.currency.message}</ErrorMessage>
-          ) : (
-            <InputHelperMessage>
-              Select the currency of the invoice
-            </InputHelperMessage>
-          )}
-        </div>
-
-        {/* Date Format for Date of Issue, Date of Service and Payment Due Date, etc. */}
-        <div>
-          <Label htmlFor="dateFormat" className="mb-1">
-            Date Format
-          </Label>
-          <Controller
-            name="dateFormat"
-            control={control}
-            render={({ field }) => (
-              <SelectNative {...field} id="dateFormat" className="block">
-                {SUPPORTED_DATE_FORMATS.map((format) => {
-                  const preview = dayjs().format(format);
-                  const isDefault = format === SUPPORTED_DATE_FORMATS[0];
-
-                  return (
-                    <option key={format} value={format}>
-                      {format} (Preview: {preview}){" "}
-                      {isDefault ? "(default)" : ""}
-                    </option>
-                  );
-                })}
-              </SelectNative>
-            )}
-          />
-
-          {errors.dateFormat ? (
-            <ErrorMessage>{errors.dateFormat.message}</ErrorMessage>
-          ) : (
-            <InputHelperMessage>
-              Select the date format of the invoice
-            </InputHelperMessage>
-          )}
-        </div>
-
-        {/* Invoice Number */}
-        <div>
-          <Label htmlFor="invoiceNumber" className="mb-1">
-            Invoice Number
-          </Label>
-          <Controller
-            name="invoiceNumber"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                type="text"
-                id="invoiceNumber"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-              />
-            )}
-          />
-          {errors.invoiceNumber && (
-            <ErrorMessage>{errors.invoiceNumber.message}</ErrorMessage>
-          )}
-          {!isInvoiceNumberInCurrentMonth && !errors.invoiceNumber ? (
-            <InputHelperMessage>
-              <span className="flex items-center text-balance">
-                <AlertIcon />
-                Invoice number does not match current month
-              </span>
-
-              <ButtonHelper
-                onClick={() => {
-                  const currentMonth = dayjs().format("MM-YYYY");
-                  setValue("invoiceNumber", `1/${currentMonth}`);
-                }}
-              >
-                Click to set the invoice number to the current month (
-                {dayjs().format("MM-YYYY")})
-              </ButtonHelper>
-            </InputHelperMessage>
-          ) : null}
-        </div>
-
-        {/* Date of Issue */}
-        <div>
-          <Label htmlFor="dateOfIssue" className="mb-1">
-            Date of Issue
-          </Label>
-          <Controller
-            name="dateOfIssue"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} type="date" id="dateOfIssue" className="" />
-            )}
-          />
-          {errors.dateOfIssue && (
-            <ErrorMessage>{errors.dateOfIssue.message}</ErrorMessage>
-          )}
-          {!isDateOfIssueInCurrentMonth && !errors.dateOfIssue ? (
-            <InputHelperMessage>
-              <span className="flex items-center">
-                <AlertIcon />
-                Date of issue does not match current month
-              </span>
-
-              <ButtonHelper
-                onClick={() => {
-                  const currentMonth = dayjs().format("YYYY-MM-DD");
-
-                  setValue("dateOfIssue", currentMonth);
-                }}
-              >
-                Click to set the date to today ({dayjs().format("DD/MM/YYYY")})
-              </ButtonHelper>
-            </InputHelperMessage>
-          ) : null}
-        </div>
-
-        {/* Date of Service */}
-        <div>
-          <Label htmlFor="dateOfService" className="mb-1">
-            Date of Service
-          </Label>
-          <Controller
-            name="dateOfService"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} type="date" id="dateOfService" className="" />
-            )}
-          />
-          {errors.dateOfService && (
-            <ErrorMessage>{errors.dateOfService.message}</ErrorMessage>
-          )}
-
-          {!isDateOfServiceInCurrentMonth && !errors.dateOfService ? (
-            <InputHelperMessage>
-              <span className="flex items-center">
-                <AlertIcon />
-                Date of service does not match current month
-              </span>
-
-              <ButtonHelper
-                onClick={() => {
-                  const lastDayOfCurrentMonth = dayjs()
-                    .endOf("month")
-                    .format("YYYY-MM-DD");
-
-                  setValue("dateOfService", lastDayOfCurrentMonth);
-                }}
-              >
-                Click to set the date to the last day of the current month (
-                {dayjs().endOf("month").format("DD/MM/YYYY")})
-              </ButtonHelper>
-            </InputHelperMessage>
-          ) : null}
-        </div>
-
-        {/* Invoice Type */}
-        <div>
-          <div className="relative mb-2 flex items-center justify-between">
-            <Label htmlFor="invoiceType" className="">
-              Invoice Type
-            </Label>
-
-            {/* Show/hide Invoice Type field in PDF switch */}
-            <div className="inline-flex items-center gap-2">
-              <Controller
-                name={`invoiceTypeFieldIsVisible`}
-                control={control}
-                render={({ field: { value, onChange, ...field } }) => (
-                  <Switch
-                    {...field}
-                    id={`invoiceTypeFieldIsVisible`}
-                    checked={value}
-                    onCheckedChange={onChange}
-                    className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
-                  />
-                )}
-              />
-              <CustomTooltip
-                trigger={
-                  <Label htmlFor={`invoiceTypeFieldIsVisible`}>
-                    Show in PDF
-                  </Label>
-                }
-                content='Show/Hide the "Invoice Type" Field in the PDF'
-              />
-            </div>
-          </div>
-
-          <Controller
-            name="invoiceType"
-            control={control}
-            render={({ field }) => (
-              <Textarea
-                {...field}
-                id="invoiceType"
-                rows={2}
-                className=""
-                placeholder="Enter invoice type"
-              />
-            )}
-          />
-          {errors.invoiceType && (
-            <ErrorMessage>{errors.invoiceType.message}</ErrorMessage>
-          )}
-        </div>
-
         <Accordion
           type="multiple"
-          // we need to cast to non-readonly to avoid type error
           defaultValue={
             DEFAULT_ACCORDION_VALUES as NonReadonly<
               typeof DEFAULT_ACCORDION_VALUES
@@ -608,6 +349,304 @@ export function InvoiceForm({
           }
           className="space-y-4"
         >
+          {/* General Information */}
+          <AccordionItem
+            value={ACCORDION_GENERAL}
+            className="rounded-lg border shadow"
+          >
+            <AccordionTrigger className="px-4 py-3">
+              <Legend>General Information</Legend>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="space-y-4">
+                {/* Language PDF Select */}
+                <div>
+                  <Label htmlFor="language" className="mb-1">
+                    Invoice PDF Language
+                  </Label>
+                  <Controller
+                    name="language"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectNative {...field} id="language" className="block">
+                        {SUPPORTED_LANGUAGES.map((lang) => (
+                          <option key={lang} value={lang}>
+                            {lang === "en" ? "English" : "Polish"}
+                          </option>
+                        ))}
+                      </SelectNative>
+                    )}
+                  />
+                  {errors.language ? (
+                    <ErrorMessage>{errors.language.message}</ErrorMessage>
+                  ) : (
+                    <InputHelperMessage>
+                      Select the language of the invoice
+                    </InputHelperMessage>
+                  )}
+                </div>
+
+                {/* Currency Select */}
+                <div>
+                  <Label htmlFor="currency" className="mb-1">
+                    Currency
+                  </Label>
+                  <Controller
+                    name="currency"
+                    control={control}
+                    render={({ field }) => {
+                      return (
+                        <SelectNative
+                          {...field}
+                          id="currency"
+                          className="block"
+                        >
+                          {SUPPORTED_CURRENCIES.map((currency) => {
+                            const currencySymbol =
+                              CURRENCY_SYMBOLS[currency] || null;
+
+                            return (
+                              <option
+                                key={currency}
+                                value={currency}
+                                defaultValue={SUPPORTED_CURRENCIES[0]}
+                              >
+                                {currency} {currencySymbol}
+                              </option>
+                            );
+                          })}
+                        </SelectNative>
+                      );
+                    }}
+                  />
+
+                  {errors.currency ? (
+                    <ErrorMessage>{errors.currency.message}</ErrorMessage>
+                  ) : (
+                    <InputHelperMessage>
+                      Select the currency of the invoice
+                    </InputHelperMessage>
+                  )}
+                </div>
+
+                {/* Date Format */}
+                <div>
+                  <Label htmlFor="dateFormat" className="mb-1">
+                    Date Format
+                  </Label>
+                  <Controller
+                    name="dateFormat"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectNative
+                        {...field}
+                        id="dateFormat"
+                        className="block"
+                      >
+                        {SUPPORTED_DATE_FORMATS.map((format) => {
+                          const preview = dayjs().format(format);
+                          const isDefault =
+                            format === SUPPORTED_DATE_FORMATS[0];
+
+                          return (
+                            <option key={format} value={format}>
+                              {format} (Preview: {preview}){" "}
+                              {isDefault ? "(default)" : ""}
+                            </option>
+                          );
+                        })}
+                      </SelectNative>
+                    )}
+                  />
+
+                  {errors.dateFormat ? (
+                    <ErrorMessage>{errors.dateFormat.message}</ErrorMessage>
+                  ) : (
+                    <InputHelperMessage>
+                      Select the date format of the invoice
+                    </InputHelperMessage>
+                  )}
+                </div>
+
+                {/* Invoice Number */}
+                <div>
+                  <Label htmlFor="invoiceNumber" className="mb-1">
+                    Invoice Number
+                  </Label>
+                  <Controller
+                    name="invoiceNumber"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="text"
+                        id="invoiceNumber"
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+                      />
+                    )}
+                  />
+                  {errors.invoiceNumber && (
+                    <ErrorMessage>{errors.invoiceNumber.message}</ErrorMessage>
+                  )}
+                  {!isInvoiceNumberInCurrentMonth && !errors.invoiceNumber ? (
+                    <InputHelperMessage>
+                      <span className="flex items-center text-balance">
+                        <AlertIcon />
+                        Invoice number does not match current month
+                      </span>
+
+                      <ButtonHelper
+                        onClick={() => {
+                          const currentMonth = dayjs().format("MM-YYYY");
+                          setValue("invoiceNumber", `1/${currentMonth}`);
+                        }}
+                      >
+                        Click to set the invoice number to the current month (
+                        {dayjs().format("MM-YYYY")})
+                      </ButtonHelper>
+                    </InputHelperMessage>
+                  ) : null}
+                </div>
+
+                {/* Date of Issue */}
+                <div>
+                  <Label htmlFor="dateOfIssue" className="mb-1">
+                    Date of Issue
+                  </Label>
+                  <Controller
+                    name="dateOfIssue"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="date"
+                        id="dateOfIssue"
+                        className=""
+                      />
+                    )}
+                  />
+                  {errors.dateOfIssue && (
+                    <ErrorMessage>{errors.dateOfIssue.message}</ErrorMessage>
+                  )}
+                  {!isDateOfIssueInCurrentMonth && !errors.dateOfIssue ? (
+                    <InputHelperMessage>
+                      <span className="flex items-center">
+                        <AlertIcon />
+                        Date of issue does not match current month
+                      </span>
+
+                      <ButtonHelper
+                        onClick={() => {
+                          const currentMonth = dayjs().format("YYYY-MM-DD");
+
+                          setValue("dateOfIssue", currentMonth);
+                        }}
+                      >
+                        Click to set the date to today (
+                        {dayjs().format("DD/MM/YYYY")})
+                      </ButtonHelper>
+                    </InputHelperMessage>
+                  ) : null}
+                </div>
+
+                {/* Date of Service */}
+                <div>
+                  <Label htmlFor="dateOfService" className="mb-1">
+                    Date of Service
+                  </Label>
+                  <Controller
+                    name="dateOfService"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="date"
+                        id="dateOfService"
+                        className=""
+                      />
+                    )}
+                  />
+                  {errors.dateOfService && (
+                    <ErrorMessage>{errors.dateOfService.message}</ErrorMessage>
+                  )}
+
+                  {!isDateOfServiceInCurrentMonth && !errors.dateOfService ? (
+                    <InputHelperMessage>
+                      <span className="flex items-center">
+                        <AlertIcon />
+                        Date of service does not match current month
+                      </span>
+
+                      <ButtonHelper
+                        onClick={() => {
+                          const lastDayOfCurrentMonth = dayjs()
+                            .endOf("month")
+                            .format("YYYY-MM-DD");
+
+                          setValue("dateOfService", lastDayOfCurrentMonth);
+                        }}
+                      >
+                        Click to set the date to the last day of the current
+                        month ({dayjs().endOf("month").format("DD/MM/YYYY")})
+                      </ButtonHelper>
+                    </InputHelperMessage>
+                  ) : null}
+                </div>
+
+                {/* Invoice Type */}
+                <div>
+                  <div className="relative mb-2 flex items-center justify-between">
+                    <Label htmlFor="invoiceType" className="">
+                      Invoice Type
+                    </Label>
+
+                    {/* Show/hide Invoice Type field in PDF switch */}
+                    <div className="inline-flex items-center gap-2">
+                      <Controller
+                        name={`invoiceTypeFieldIsVisible`}
+                        control={control}
+                        render={({ field: { value, onChange, ...field } }) => (
+                          <Switch
+                            {...field}
+                            id={`invoiceTypeFieldIsVisible`}
+                            checked={value}
+                            onCheckedChange={onChange}
+                            className="h-5 w-8 [&_span]:size-4 [&_span]:data-[state=checked]:translate-x-3 rtl:[&_span]:data-[state=checked]:-translate-x-3"
+                          />
+                        )}
+                      />
+                      <CustomTooltip
+                        trigger={
+                          <Label htmlFor={`invoiceTypeFieldIsVisible`}>
+                            Show in PDF
+                          </Label>
+                        }
+                        content='Show/Hide the "Invoice Type" Field in the PDF'
+                      />
+                    </div>
+                  </div>
+
+                  <Controller
+                    name="invoiceType"
+                    control={control}
+                    render={({ field }) => (
+                      <Textarea
+                        {...field}
+                        id="invoiceType"
+                        rows={2}
+                        className=""
+                        placeholder="Enter invoice type"
+                      />
+                    )}
+                  />
+                  {errors.invoiceType && (
+                    <ErrorMessage>{errors.invoiceType.message}</ErrorMessage>
+                  )}
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
           {/* Seller Information */}
           <AccordionItem
             value={ACCORDION_SELLER}
